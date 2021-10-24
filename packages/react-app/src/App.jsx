@@ -21,7 +21,7 @@ import {
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 // import Hints from "./Hints";
-import { ExampleUI, Hints, Subgraph } from "./views";
+import { PlantUI,ExampleUI, Hints, Subgraph } from "./views";
 
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
@@ -482,6 +482,16 @@ function App(props) {
               ExampleUI
             </Link>
           </Menu.Item>
+          <Menu.Item key="/plantui">
+            <Link
+              onClick={() => {
+                setRoute("/plantui");
+              }}
+              to="/plantui"
+            >
+              PlantUI
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/mainnetdai">
             <Link
               onClick={() => {
@@ -531,6 +541,21 @@ function App(props) {
           </Route>
           <Route path="/exampleui">
             <ExampleUI
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              purpose={purpose}
+              setPurposeEvents={setPurposeEvents}
+            />
+          </Route>
+          <Route path="/plantui">
+            <PlantUI
               address={address}
               userSigner={userSigner}
               mainnetProvider={mainnetProvider}
