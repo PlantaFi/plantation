@@ -1,5 +1,7 @@
 const menu = require('console-menu');
 const process = require('process');
+const max = Math.max;
+const min = Math.min;
 
 let lineCount = 0;
 async function next() {
@@ -21,22 +23,58 @@ let Balance = 10; // in MATIC
 const GasCost = 0.005; // base gas for every tx
 const WaterCost = 0.5;
 const PruneCost = 0.1;
-// const Time = 0; // unused
 
-let DNAwaterUseFactor = 1.0;
-let soilAbsorbFactor = 1.0;
+/*
+bits
+3: 1 of 8 species
+3: growth bonus (4% extra growth per unit 2^3)
+3: maturation bonus - less growth required per stage (4% less growth needed to stage up per unit 2^3)
+3: water efficiency (absorb 4% more water per unit)
+3: fertilizer efficiency (absorb 4% more fertilizer)
+3: fruit bonus (grows 4% more per)
+3: longevity (lives 6% longer per)
+3: weaken hardiness (3% less branches weaken)
+3: (branch) dying hardiness (3% less branches die)
+5: color/cosmetic
+= sums to 32
+*/
+// returns a 32-char string of 1s and 0s
+function generateDNA() {
+  return Math.floor(Math.random() * 2 ** 32).toString(2).padStart(32, "0");
+}
+function parseGenes(dnaStr) {
+  const OFFSETS = { SPECIES: 0*3,
+                    GROWTH : 1*3,
+                    MATURE : 2*3,
+                    ABSORB : 3*3,
+                    FERTILE: 4*3,
+                    FRUIT  : 5*3,
+                    LONG   : 6*3,
+                    WEAK   : 7*3,
+                    DIE    : 8*3,
+                    COLOR  : 9*3, // special case of 5 bits
+                  };
+  const genes = {};
+  for (let key in OFFSETS) {
+    genes[key.toLowerCase()] = parseInt(dnaStr.slice(OFFSETS[key], OFFSETS[key] + (key == 'COLOR' ? 5 : 3)), 2);
+  }
+  return genes;
+}
+
 const MAX_ABSORB = 500;
 
-// soilAbsorbFactor is 1.0 to 1.5, default to 1.0
-// DNAwaterUseFactor is 0.8 to 1.2, default to 1.0
-function _absorbed(soilAbsorbFactor, norm, weak, dead) {
-    // absorbed amt related to healthy mass
-    return Math.min(MAX_ABSORB, soilAbsorbFactor * norm);
+const Genes = parseGenes(generateDNA());
+
+const factor = (name) => 1 + Genes[name] * .04; // XXX assumes 4% effect per unit for each gene
+
+// absorbed amt related to healthy mass
+function _absorbed(norm, weak, dead) {
+    return Math.min(MAX_ABSORB, factor('absorb') * norm);
 }
-function _useRate(soilAbsorbFactor, norm, weak, dead) {
+function _useRate(norm, weak, dead) {
     // TODO should we cap useRate?
     // weak/dead will spend absorbed water
-    return DNAwaterUseFactor * (1 + Math.floor(Math.sqrt(norm+weak+dead)));
+    return /* DNAwaterUseFactor * */ (1 + Math.floor(Math.sqrt(norm+weak+dead)));
 }
 const Tree = {
     norm: 1 /* must be >0 */,
@@ -52,39 +90,29 @@ const strengthenRate = 0.1;
 const dryWeakenRate = 0.2;
 const deathRate = 0.1;
 
-// linear component + exponential
-
-const max = Math.max;
-const min = Math.min;
 const minOr0 = (x, y) => max(0, min(x, y));
 
-// assumes hydration - t is hours to look forward
-//
-// while hydrated... norm grow.. then stop when not
-// while hydrated... some norm weaken.. then more weaken
-// while hydrated... some weak die.. then more weak die
-const normBranchGrowth = (T, t) => minOr0(t, T.h2oHours) * (
-        branchLinearRate + Math.sqrt(T.norm) -
-        weakenRate * T.norm +
-        strengthenRate * T.weak
-    ) - max(0, t - T.h2oHours) * dryWeakenRate * T.norm
-const weakBranchGrowth = (T, t) => minOr0(t, T.h2oHours) * (
-        weakenRate * T.norm -
-        strengthenRate * T.weak
-    ) + max(0, t - T.h2oHours) * dryWeakenRate * T.norm - deathRate*t*T.weak;
-const deadBranchGrowth = (T, t) => deathRate*t*T.weak;
+const wetTime = (T, t) => minOr0(t, T.h2oHours);
+const dryTime = (T, t) => max(0, t - T.h2oHours);
 
-function printHead() {
-    console.log('MATIC    ,br.norm   ,+br.weak   ,+br.dead   ,=br.total  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
-}
-function printTree() {
-    console.log([Balance, Tree.norm, Tree.weak, Tree.dead, Tree.norm+Tree.weak+Tree.dead, Tree.h2oLevel, Tree.h2oUseRate, Tree.h2oHours].map(x => x.toFixed(2)).join('\t\t'));
-}
+const wetGrowth = (T, t) => wetTime(T, t) * factor('growth') * (branchLinearRate + Math.sqrt(T.norm));
+const wetWeaken = (T, t) => wetTime(T, t) * factor('weak')/2 * weakenRate * T.norm;
+const dryWeaken = (T, t) => dryTime(T, t) * factor('weak')/2 * dryWeakenRate * T.norm;
+const wetStrengthen = (T, t) => wetTime(T, t) * strengthenRate * T.norm;
+
+const normBranchGrowth = (T, t) => wetGrowth(T, t) - wetWeaken(T, t) + wetStrengthen(T, t) - dryWeaken(T, t);
+const weakBranchGrowth = (T, t) =>                   wetWeaken(T, t) - wetStrengthen(T, t) + dryWeaken(T, t) - deadBranchGrowth(T, t);
+const deadBranchGrowth = (T, t) => factor('die') * deathRate * t * T.weak;
+
+const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
+const printHead = () => console.log('MATIC    ,br.norm   ,+br.weak   ,+br.dead   ,=br.total  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
+const printTree = () => console.log([Balance, Tree.norm, Tree.weak, Tree.dead, Tree.norm+Tree.weak+Tree.dead, Tree.h2oLevel, Tree.h2oUseRate, Tree.h2oHours].map(x => x.toFixed(2)).join('\t\t'));
+
 // no time passes
 function water() {
     Balance -= (WaterCost + GasCost);
-    Tree.h2oLevel = _absorbed(soilAbsorbFactor, Tree.norm, Tree.weak, Tree.dead);
-    Tree.h2oUseRate = _useRate(soilAbsorbFactor, Tree.norm, Tree.weak, Tree.dead);
+    Tree.h2oLevel = _absorbed(Tree.norm, Tree.weak, Tree.dead);
+    Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
     Tree.h2oHours = Tree.h2oLevel/Tree.h2oUseRate;
 }
 function idle1hr() {
@@ -114,13 +142,14 @@ function prune() {
     Tree.dead -= deads;
 
     // XXX update but not used until next watering - doesn't update h2oHours/level
-    Tree.h2oUseRate = _useRate(soilAbsorbFactor, Tree.norm, Tree.weak, Tree.dead);
+    Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
     // TODO
     // can't track wounds alone w/o knowing number+when cut so make infections immediately weaken/die
     // so pruning will kill some healthy
 
 }
 async function main() {
+    printGenes();
     printHead();
     while (1) {
         await next();
