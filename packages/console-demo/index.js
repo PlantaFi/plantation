@@ -85,9 +85,9 @@ const Tree = {
 water();
 
 const branchLinearRate = 1.0 // base rate per hour
-const weakenRate = 0.05;
-const strengthenRate = 0.1;
+const wetWeakenRate = 0.05;
 const dryWeakenRate = 0.2;
+const strengthenRate = 0.1;
 const deathRate = 0.1;
 
 const minOr0 = (x, y) => max(0, min(x, y));
@@ -96,9 +96,9 @@ const wetTime = (T, t) => minOr0(t, T.h2oHours);
 const dryTime = (T, t) => max(0, t - T.h2oHours);
 
 const wetGrowth = (T, t) => wetTime(T, t) * factor('growth') * (branchLinearRate + Math.sqrt(T.norm));
-const wetWeaken = (T, t) => wetTime(T, t) * factor('weak')/2 * weakenRate * T.norm;
+const wetWeaken = (T, t) => wetTime(T, t) * factor('weak')/2 * wetWeakenRate * T.norm;
 const dryWeaken = (T, t) => dryTime(T, t) * factor('weak')/2 * dryWeakenRate * T.norm;
-const wetStrengthen = (T, t) => wetTime(T, t) * strengthenRate * T.norm;
+const wetStrengthen = (T, t) => wetTime(T, t) * strengthenRate * T.weak;
 
 const normBranchGrowth = (T, t) => wetGrowth(T, t) - wetWeaken(T, t) + wetStrengthen(T, t) - dryWeaken(T, t);
 const weakBranchGrowth = (T, t) =>                   wetWeaken(T, t) - wetStrengthen(T, t) + dryWeaken(T, t) - deadBranchGrowth(T, t);
