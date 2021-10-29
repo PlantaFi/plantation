@@ -38,6 +38,8 @@ async function main() {
     const WaterCost = 0.5;
     const PruneCost = 0.1;
 
+    Balance -= (WaterCost + GasCost);
+
     function parseGenes(dnaStr) {
         const OFFSETS = { SPECIES: 0*3,
                             GROWTH : 1*3,
@@ -71,7 +73,8 @@ async function main() {
     }
 
     async function idle1hr() {
-        const plusOneHour = Date.now() / 1000 + 1 * 60 * 60;
+        const now = (await provider.getBlock(await provider.getBlockNumber())).timestamp;
+        const plusOneHour = now + 1 * 60 * 60;
         await provider.send('evm_setNextBlockTimestamp', [plusOneHour]);
         await provider.send('evm_mine', []);
     }
