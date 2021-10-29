@@ -80,6 +80,11 @@ contract Plant is ERC721 {
         plant.lastWateredAt = block.timestamp;
     }
 
+    /// Prune a plant
+    function prune(uint256 plantId) external {
+        revert("Not yet Implemented");
+    }
+
     /* --- State Helper functions --- */
 
     /// Query a plant current state
@@ -89,6 +94,8 @@ contract Plant is ERC721 {
 
     function _state(PlantState memory p) internal view returns (PlantState memory) {
         (uint256 wetTicks, uint256 dryTicks, uint256 ticks) = elapsedTicks(block.timestamp, p.lastUpdatedAt, p.lastWaterTicks);
+        // To avoid the stack too deep error
+        // https://soliditydeveloper.com/stacktoodeep
         {
             uint256 weakFactor = traitFactor(Trait.WEAK, p.dna);
             uint256 newWetWeaken = wetWeaken(wetTicks, weakFactor, p.lastNormalBranch);

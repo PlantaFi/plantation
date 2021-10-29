@@ -81,9 +81,9 @@ async function main() {
         await plant.water(0);
     }
 
-    function prune() {
+    async function prune() {
         Balance -= (PruneCost + GasCost);
-        throw Error('Unimplemented')
+        await plant.prune(0);
     }
 
     await printGenes();
