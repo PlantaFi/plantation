@@ -40,7 +40,8 @@ bits
 */
 // returns a 32-char string of 1s and 0s
 function generateDNA() {
-  return Math.floor(Math.random() * 2 ** 32).toString(2).padStart(32, "0");
+  // return Math.floor(Math.random() * 2 ** 32).toString(2).padStart(32, "0");
+  return '11110110111101100101000110001100';
 }
 function parseGenes(dnaStr) {
   const OFFSETS = { SPECIES: 0*3,

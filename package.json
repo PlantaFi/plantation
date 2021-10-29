@@ -10,6 +10,7 @@
   ],
   "private": true,
   "scripts": {
+      "demo": "yarn workspace @scaffold-eth/hardhat deploy --reset && yarn workspace plantation-console-demo demo",
     "react-app:build": "yarn workspace @scaffold-eth/react-app build --max-old-space-size=12288",
     "react-app:eject": "yarn workspace @scaffold-eth/react-app eject",
     "react-app:start": "yarn workspace @scaffold-eth/react-app start",
