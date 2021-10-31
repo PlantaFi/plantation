@@ -24,6 +24,8 @@ async function next() {
 
 const Player = {};
 const Game = {};
+const GamePool = {};
+const Fruit = { totalSupply: 0 };
 
 // DEX has a MATIC/FRUIT rate
 // Game also starts with 1 MATIC = 1 FRUIT
@@ -46,33 +48,33 @@ function initState() {
 
   Game.fertilizePeriod = 3;
   Game.bonusStake = 0.05; // compounds after 100% ripe
-  Game.maticPoolBalance = 0;
+  GamePool.maticBalance = 0;
   Game.maticPotBalance = 0; // profit
   Game.fruitPotBalance = 0;
-  Game.fruitBalance = 0; // fertilize -> mints and stakes this future fruit
-  Game.fruitTotalSupply = 0; // theoretical price is totalSupply / maticPoolBalance
+  GamePool.fruitBalance = 0; // fertilize -> mints and stakes this future fruit
+  Fruit.totalSupply = 0; // theoretical price is totalSupply (not pool balance) / maticPoolBalance
   Game.fertilizeTaxRate = 0.05;
   Game.harvestTaxRate = 0.02;
 }
 
 function initFruitPrice() {
-  Game.maticPoolBalance = 100;
-  Game.fruitBalance = 100;
-  Game.fruitTotalSupply = 100; // should it go into player's account? no
+  GamePool.maticBalance = 100;
+  GamePool.fruitBalance = 100;
+  Fruit.totalSupply = 100; // should it go into player's account? no
 }
 
 const pad12 = (s) => (s + '            ').slice(0, 12);
 const printHead = () => console.log('Player,---,---,---,Game Profit,,Game Pool,\nMATIC,FRUIT,preFruit,days fert,MATIC,FRUIT,MATIC,FRUIT,supply FRUIT'.split(',').map(x => pad12(x)).join(''));
-const printState = () => console.log([Player.maticBalance, Player.fruitBalance, Player.preFruitClaim, Player.sinceFertilize, Game.maticPotBalance, Game.fruitPotBalance, Game.maticPoolBalance, Game.fruitBalance, Game.fruitTotalSupply].map(x => pad12((x).toFixed(2))).join(''));
+const printState = () => console.log([Player.maticBalance, Player.fruitBalance, Player.preFruitClaim, Player.sinceFertilize, Game.maticPotBalance, Game.fruitPotBalance, GamePool.maticBalance, GamePool.fruitBalance, Fruit.totalSupply].map(x => pad12((x).toFixed(2))).join(''));
 
 function idle1d() {
   Player.sinceFertilize++;
 }
 
 // x*y=k -> (x+maticIn)*(y-fruitOut) = x*y -> fruitOut = -1*(x*y / (x+maticIn) - y) = y-x*y/(x+mIn)
-const fruitOutGivenMaticIn = (maticIn) => Game.fruitBalance - Game.maticPoolBalance * Game.fruitBalance / (Game.maticPoolBalance + maticIn);
+const fruitOutGivenMaticIn = (maticIn) => GamePool.fruitBalance - GamePool.maticBalance * GamePool.fruitBalance / (GamePool.maticBalance + maticIn);
 //          (x-maticOut)*(y+fruitIn) = x*y -> maticOut = -1*(x*y / (y+fruitIn) - x) = x-x*y/(y+fIn)
-const maticOutGivenFruitIn = (fruitIn) => Game.maticPoolBalance - Game.maticPoolBalance * Game.fruitBalance / (Game.fruitBalance + fruitIn)
+const maticOutGivenFruitIn = (fruitIn) => GamePool.maticBalance - GamePool.maticBalance * GamePool.fruitBalance / (GamePool.fruitBalance + fruitIn)
 
 // TODO amount should be in (pre)FRUIT, not MATIC.. so cost will fluctuate
 function fertilize(amount=1) {
@@ -80,13 +82,13 @@ function fertilize(amount=1) {
   let _amount = amount - tax;
   Player.maticBalance -= amount;
   Game.maticPotBalance += tax;
-  Game.maticBalance += _amount;
+  GamePool.maticBalance += _amount;
   let fruitOut = fruitOutGivenMaticIn(_amount);
   console.log(`fertilized ${fruitOut} preFruit`);
   Player.preFruitClaim += fruitOut; // XXX allows re-fertilize but resets timer
   Player.sinceFertilize = 0;
-  Game.fruitBalance += fruitOut; // it's only preFruit because not yet harvested, but is minted
-  Game.fruitTotalSupply += fruitOut;
+  GamePool.fruitBalance += fruitOut; // it's only preFruit because not yet harvested, but is minted
+  Fruit.totalSupply += fruitOut;
 }
 const fertilize10 = () => fertilize(10);
 
@@ -103,8 +105,8 @@ function harvest() {
 
     // "mint" extra that didn't exist, must be minted into supply, may be implications for minting long after debt had increased
     console.log(`mint ${compoundedBonus} new FRUIT`);
-    Game.fruitTotalSupply += compoundedBonus;
-    Game.fruitBalance += compoundedBonus;
+    Fruit.totalSupply += compoundedBonus;
+    GamePool.fruitBalance += compoundedBonus;
 
     amount = Player.preFruitClaim + compoundedBonus;
   }
@@ -117,7 +119,7 @@ function harvest() {
   // TODO transferFrom(amount, 'fruit', Game, Player) = from['fruit' + 'Balance'] -= amount, to['fruit' + 'Balance'] += amount;
   console.log(`harvested ${amount - tax} FRUIT after ${tax} tax`);
   Player.fruitBalance += amount - tax;
-  Game.fruitBalance -= amount;
+  GamePool.fruitBalance -= amount;
 
 }
 
@@ -129,9 +131,9 @@ function fruit2matic() {
   const maticOut = maticOutGivenFruitIn(fruitIn);
   console.log(`sold ${fruitIn} FRUIT for ${maticOut} MATIC`);
   Player.fruitBalance -= fruitIn;
-  Game.fruitBalance += fruitIn;
+  GamePool.fruitBalance += fruitIn;
   Player.maticBalance += maticOut;
-  Game.maticPoolBalance -=maticOut;
+  GamePool.maticBalance -=maticOut;
 }
 
 function fruit2plant() {
