@@ -47,20 +47,20 @@ function initState() {
   Player.sinceFertilize = 0; // days since fertilize - reach fertilizePeriod for 100%
 
   Game.fertilizePeriod = 3;
-  Game.bonusStake = 0.05; // compounds after 100% ripe
+  Game.bonusStake = 0.02; // compounds per period after 100% ripe
   GamePool.maticBalance = 0;
   Game.maticPotBalance = 0; // profit
   Game.fruitPotBalance = 0;
   GamePool.fruitBalance = 0; // fertilize -> mints and stakes this future fruit
   Fruit.totalSupply = 0; // theoretical price is totalSupply (not pool balance) / maticPoolBalance
   Game.fertilizeTaxRate = 0.05;
-  Game.harvestTaxRate = 0.02;
+  Game.harvestTaxRate = 0.025;
 }
 
 function initFruitPrice() {
-  GamePool.maticBalance = 100;
-  GamePool.fruitBalance = 100;
-  Fruit.totalSupply = 100; // should it go into player's account? no
+  GamePool.maticBalance = 10;
+  GamePool.fruitBalance = 10; // initalize to 1 MATIC = 1 FRUIT
+  Fruit.totalSupply = 10; // should it go into player's account? no
 }
 
 const pad12 = (s) => (s + '            ').slice(0, 12);
@@ -111,6 +111,7 @@ function harvest() {
     amount = Player.preFruitClaim + compoundedBonus;
   }
   let tax = amount * Game.harvestTaxRate;
+  // TODO auto-sell FRUIT tax to MATIC
   Game.fruitPotBalance += tax;
 
   Player.preFruitClaim = 0;
