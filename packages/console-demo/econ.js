@@ -7,8 +7,8 @@ async function next() {
         { hotkey: 's', title: 'Fertilize/Stake 1 MATIC', cb: fertilize },
         { hotkey: 'S', title: 'Fertilize/Stake 10 MATIC', cb: fertilize10 },
         { hotkey: 'h', title: 'Harvest', cb: harvest },
-        { hotkey: 'p', title: 'Exchange FRUIT for PLANT seed', cb: fruit2plant },
-        { hotkey: 'm', title: 'Exchange FRUIT for MATIC', cb: fruit2matic },
+        //{ hotkey: 'p', title: 'Sell 1 FRUIT for PLANT seed', cb: fruit2plant },
+        { hotkey: 'm', title: `Sell 1 FRUIT for ${maticOutGivenFruitIn(1)} MATIC`, cb: fruit2matic },
         { separator: true },
         { hotkey: 'q', title: 'Quit', cb: process.exit },
     ])
@@ -71,6 +71,8 @@ function idle1d() {
 
 // x*y=k -> (x+maticIn)*(y-fruitOut) = x*y -> fruitOut = -1*(x*y / (x+maticIn) - y) = y-x*y/(x+mIn)
 const fruitOutGivenMaticIn = (maticIn) => Game.fruitBalance - Game.maticPoolBalance * Game.fruitBalance / (Game.maticPoolBalance + maticIn);
+//          (x-maticOut)*(y+fruitIn) = x*y -> maticOut = -1*(x*y / (y+fruitIn) - x) = x-x*y/(y+fIn)
+const maticOutGivenFruitIn = (fruitIn) => Game.maticPoolBalance - Game.maticPoolBalance * Game.fruitBalance / (Game.fruitBalance + fruitIn)
 
 // TODO amount should be in (pre)FRUIT, not MATIC.. so cost will fluctuate
 function fertilize(amount=1) {
@@ -120,8 +122,16 @@ function harvest() {
 }
 
 function fruit2matic() {
-  // get exchange rate
-  State.playerPlantBalance++;
+  let fruitIn = 1;
+  if (fruitIn > Player.fruitBalance) {
+    fruitIn = Player.fruitBalance;
+  }
+  const maticOut = maticOutGivenFruitIn(fruitIn);
+  console.log(`sold ${fruitIn} FRUIT for ${maticOut} MATIC`);
+  Player.fruitBalance -= fruitIn;
+  Game.fruitBalance += fruitIn;
+  Player.maticBalance += maticOut;
+  Game.maticPoolBalance -=maticOut;
 }
 
 function fruit2plant() {
