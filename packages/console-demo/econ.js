@@ -9,6 +9,7 @@ async function next() {
         { hotkey: 'h', title: 'Harvest', cb: harvest },
         //{ hotkey: 'p', title: 'Sell 1 FRUIT for PLANT seed', cb: fruit2plant },
         { hotkey: 'm', title: `Sell 1 FRUIT for ${maticOutGivenFruitIn(1)} MATIC`, cb: fruit2matic },
+        { hotkey: 'M', title: `Sell 10 FRUIT for ${maticOutGivenFruitIn(10)} MATIC`, cb: _10fruit2matic },
         { separator: true },
         { hotkey: 'q', title: 'Quit', cb: process.exit },
     ])
@@ -132,8 +133,7 @@ function harvest() {
 
 }
 
-function fruit2matic() {
-  let fruitIn = 1;
+function fruit2matic(fruitIn=1) {
   if (fruitIn > Player.fruitBalance) {
     fruitIn = Player.fruitBalance;
   }
@@ -144,6 +144,7 @@ function fruit2matic() {
   Player.maticBalance += maticOut;
   GamePool.maticBalance -=maticOut;
 }
+const _10fruit2matic = () => fruit2matic(10);
 
 function fruit2plant() {
 }
