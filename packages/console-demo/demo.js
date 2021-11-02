@@ -4,9 +4,6 @@ const { ethers } = require('ethers');
 
 const abi = require('../react-app/src/contracts/hardhat_contracts.json');
 
-const max = Math.max;
-const min = Math.min;
-
 async function main() {
     const provider = new ethers.providers.StaticJsonRpcProvider();
     const signer = provider.getSigner();
