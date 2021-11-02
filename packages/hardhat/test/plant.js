@@ -6,11 +6,12 @@ use(solidity);
 
 const setup = deployments.createFixture(async hre => {
     await hre.deployments.fixture("Plant");
-    const [user1] = await hre.ethers.getUnnamedSigners();
+    const [user1, user2] = await hre.ethers.getUnnamedSigners();
     const plant = await hre.ethers.getContract("Plant", user1);
     return {
         hre,
         user1,
+        user2,
         plant,
     }
 });
@@ -47,9 +48,32 @@ describe("Plant", () => {
         it("should return the unplanted plant ids", async () => {
             const { user1, plant } = await setup();
             await plant.buy();
+            const token1Id = await plant.tokenOfOwnerByIndex(user1.address, 0);
             await plant.buy();
+            const token2Id = await plant.tokenOfOwnerByIndex(user1.address, 1);
             const unplantedIds = await plant.unplantedByAddress(user1.address);
-            expect(unplantedIds.map(bn => bn.toNumber())).to.deep.equal([1, 2]);
+            expect(unplantedIds).to.deep.equal([token1Id, token2Id]);
+        });
+    });
+
+    describe("burn", () => {
+
+        it("should only burn an owned plant", async () => {
+            const { user1, user2, plant } = await setup();
+            await plant.buy();
+            const token1Id = await plant.tokenOfOwnerByIndex(user1.address, 0);
+            const plantUser2 = plant.connect(user2);
+            await plantUser2.buy();
+            await expect(plantUser2.burn(token1Id)).to.be.reverted;
+        });
+
+        it("should burn an owned plant", async () => {
+            const { hre, user1, plant } = await setup();
+            await plant.buy();
+            const user1Balance = await plant.balanceOf(user1.address);
+            const token1Id = await plant.tokenOfOwnerByIndex(user1.address, 0);
+            await expect(plant.burn(token1Id)).to.emit(plant, 'Transfer').withArgs(user1.address, hre.ethers.constants.AddressZero, 1);
+            expect(await plant.balanceOf(user1.address)).to.equal(user1Balance.sub(1));
         });
     });
 });

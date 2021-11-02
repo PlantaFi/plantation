@@ -6,9 +6,10 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { Math as OPMath } from "@openzeppelin/contracts/utils/math/Math.sol";
-import { Math } from "./Math.sol";
 import { PRBMathSD59x18 as PRBI } from "prb-math/contracts/PRBMathSD59x18.sol";
 import { PRBMathUD60x18 as PRBU } from "prb-math/contracts/PRBMathUD60x18.sol";
+import { Math } from "./Math.sol";
+import { Unauthorized } from "./Shared.sol";
 
 contract Plant is ERC721, ERC721Enumerable {
 
@@ -54,7 +55,7 @@ contract Plant is ERC721, ERC721Enumerable {
     }
 
     /// Plants state
-    mapping (uint256 => PlantState) public _plants;
+    mapping (uint256 => PlantState) public plantStates;
 
     constructor() ERC721("Plant", "PLANT") {
         buy();
@@ -68,13 +69,13 @@ contract Plant is ERC721, ERC721Enumerable {
         _safeMint(msg.sender, plantId);
         _tokenIdCounter.increment();
         // TEMP 11110110111101100101000110001100
-        _plants[plantId].dna = 4143337868;
-        _initializeState(_plants[plantId]);
+        plantStates[plantId].dna = 4143337868;
+        _initializeState(plantStates[plantId]);
     }
 
     /// Water a plant
     function water(uint256 plantId) external {
-        PlantState storage plant = _plants[plantId];
+        PlantState storage plant = plantStates[plantId];
         _updateState(plant);
         plant.lastWaterLevel = waterAbsorbed(traitFactor(Trait.ABSORB, plant.dna), plant.lastNormalBranch);
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
@@ -87,6 +88,17 @@ contract Plant is ERC721, ERC721Enumerable {
         revert("Not yet Implemented");
     }
 
+    /**
+     * Burn one of `your` `plants` and empty the corresponding `land`.
+     * @dev See {ERC721-_burn}
+     */
+    function burn(uint256 plantId) external {
+        // Check if the token exists and if the sender owns the seed
+        if (ownerOf(plantId) != msg.sender) revert Unauthorized();
+        delete plantStates[plantId];
+        _burn(plantId);
+    }
+
     /* --- Game state helper functions --- */
 
     /// Get an address's unplanted plants
@@ -97,7 +109,7 @@ contract Plant is ERC721, ERC721Enumerable {
         uint256[] memory ids = new uint256[](balance);
         for (uint256 i; i < balance; i++) {
             uint256 plantId = tokenOfOwnerByIndex(addr, i);
-            if (!isPlanted(_plants[plantId])) {
+            if (!isPlanted(plantStates[plantId])) {
                 ids[count++] = plantId;
             } 
         }
@@ -112,7 +124,7 @@ contract Plant is ERC721, ERC721Enumerable {
 
     /// Query a plant current state
     function state(uint256 _plantId) external view returns (PlantState memory) {
-        return _state(_plants[_plantId]);
+        return _state(plantStates[_plantId]);
     }
 
     function isPlanted(PlantState storage plant) internal view returns (bool) {
