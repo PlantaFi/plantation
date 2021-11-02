@@ -56,7 +56,7 @@ async function main() {
         return genes;
     }
 
-    const { dna } = await plant._plants(0);
+    const { dna } = await plant.plantStates(0);
     const Genes = parseGenes(dna.toString(2));
     const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
     const printHead = () => console.log('MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,>=last sum  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
