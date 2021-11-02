@@ -1,15 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import { console } from "hardhat/console.sol";
+// import { console } from "hardhat/console.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { Math as OPMath } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { Math } from "./Math.sol";
 import { PRBMathSD59x18 as PRBI } from "prb-math/contracts/PRBMathSD59x18.sol";
 import { PRBMathUD60x18 as PRBU } from "prb-math/contracts/PRBMathUD60x18.sol";
 
-contract Plant is ERC721 {
+contract Plant is ERC721, ERC721Enumerable {
 
     using Counters for Counters.Counter;
 
@@ -40,7 +41,6 @@ contract Plant is ERC721 {
          * = sums to 32
          */
         uint32 dna;
-        uint256 soilAbsorbFactor; // as wad TEMP soilAbsorbFactor is 1.0 to 1.5, default to 1.0
         // Plant properties
         uint256 lastNormalBranch; // as wad
         uint256 lastWeakBranch; // as wad
@@ -50,6 +50,7 @@ contract Plant is ERC721 {
         uint256 lastWaterTicks; // as wad
         uint256 lastWateredAt;
         uint256 lastUpdatedAt;
+        uint256 landId; // Its associated land
     }
 
     /// Plants state
@@ -86,48 +87,56 @@ contract Plant is ERC721 {
         revert("Not yet Implemented");
     }
 
-    /* --- State Helper functions --- */
+    /* --- Game state helper functions --- */
+
+    /// Get an address's unplanted plants
+    function unplantedByAddress(address addr) external view returns (uint256[] memory) {
+        require(addr != address(0), "Invalid address");
+        uint256 balance = balanceOf(addr);
+        uint256 count;
+        uint256[] memory ids = new uint256[](balance);
+        for (uint256 i; i < balance; i++) {
+            uint256 plantId = tokenOfOwnerByIndex(addr, i);
+            if (!isPlanted(_plants[plantId])) {
+                ids[count++] = plantId;
+            } 
+        }
+        uint256[] memory filtered = new uint256[](count);
+        for (uint256 i; i < count; i++) {
+            filtered[i] = ids[i];
+        }
+        return filtered;
+    }
+
+    /* --- Plant state helper functions --- */
 
     /// Query a plant current state
     function state(uint256 _plantId) external view returns (PlantState memory) {
         return _state(_plants[_plantId]);
     }
 
+    function isPlanted(PlantState storage plant) internal view returns (bool) {
+        return plant.landId != type(uint256).max;
+    }
+
     function _state(PlantState memory p) internal view returns (PlantState memory) {
         (uint256 wetTicks, uint256 dryTicks, uint256 ticks) = elapsedTicks(block.timestamp, p.lastUpdatedAt, p.lastWaterTicks);
-        console.log("ticks", wetTicks, dryTicks, ticks);
         // To avoid the stack too deep error
         // https://soliditydeveloper.com/stacktoodeep
         {
             uint256 weakFactor = traitFactor(Trait.WEAK, p.dna);
-            console.log("weakFactor", weakFactor);
             uint256 newWetWeaken = wetWeaken(wetTicks, weakFactor, p.lastNormalBranch);
             uint256 newDryWeaken = dryWeaken(dryTicks, weakFactor, p.lastNormalBranch);
             uint256 newWetStrengthen = wetStrengthen(wetTicks, p.lastWeakBranch);
             uint256 newWetGrowth = wetGrowth(wetTicks, traitFactor(Trait.GROWTH, p.dna), p.lastNormalBranch);
-            console.log("newWetGrowth", newWetGrowth);
-            console.log("newWetWeaken", newWetWeaken);
-            console.log("newWetStrengthen", newWetStrengthen);
-            console.log("newDryWeaken", newDryWeaken);
             int256 newNormalBranchGrowth = normalBranchGrowth(newWetGrowth, newWetWeaken, newWetStrengthen, newDryWeaken);
-            console.log("newNormalBranchGrowth");
-            console.logInt(newNormalBranchGrowth);
-            console.log("lastNormalBranch", p.lastNormalBranch);
             // Cannot be less than 0
             p.lastNormalBranch = Math.or0(Math.toInt256(p.lastNormalBranch) + newNormalBranchGrowth);
-            console.log("newNormalBranch", p.lastNormalBranch);
             uint256 newDeadBranchGrowth = deadBranchGrowth(traitFactor(Trait.DIE, p.dna), ticks, p.lastWeakBranch);
-            console.log("newDeadBranchGrowth", newDeadBranchGrowth);
-            console.log("lastDeadBranch", p.lastDeadBranch);
             p.lastDeadBranch = p.lastDeadBranch + newDeadBranchGrowth;
-            console.log("newDeadBranch", p.lastDeadBranch);
             int256 newWeakBranchGrowth = weakBranchGrowth(newWetWeaken, newWetStrengthen, newDryWeaken, newDeadBranchGrowth);
-            console.log("newWeakBranchGrowth");
-            console.logInt(newWeakBranchGrowth);
-            console.log("lastWeakBranch", p.lastWeakBranch);
             // Cannot be less than 0
             p.lastWeakBranch = Math.or0(Math.toInt256(p.lastWeakBranch) + newWeakBranchGrowth);
-            console.log("newWeakBranch", p.lastWeakBranch);
         }
         {
             (uint256 newWaterLevel, uint256 newWaterTicks) = remainingWater(ticks, p.lastWaterUseRate, p.lastWaterLevel, p.lastWaterTicks);
@@ -149,13 +158,13 @@ contract Plant is ERC721 {
 
     function _initializeState(PlantState storage plant) internal {
         // Only initialize non zero values
-        plant.soilAbsorbFactor = PRBU.fromUint(1); // TEMP
         plant.lastNormalBranch = PRBU.fromUint(1); // FIXME: Should be a constant
         plant.lastWaterLevel = waterAbsorbed(traitFactor(Trait.ABSORB, plant.dna), plant.lastNormalBranch);
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
         plant.lastWaterTicks = PRBU.div(plant.lastWaterLevel, plant.lastWaterUseRate);
         plant.lastWateredAt = block.timestamp;
         plant.lastUpdatedAt = block.timestamp;
+        plant.landId = type(uint256).max;
     }
 
     // as wad
@@ -207,9 +216,7 @@ contract Plant is ERC721 {
 
     // Return values as wad
     function elapsedTicks(uint256 currentTimestamp, uint256 lastUpdate, uint256 lastWaterTicks) internal view returns (uint256 wet, uint256 dry, uint256 total) {
-        console.log("elapsedTicks", currentTimestamp, lastUpdate, lastWaterTicks);
         uint256 elapsedTime = PRBU.fromUint(currentTimestamp - lastUpdate);
-        console.log("elapsedTime", elapsedTime);
         total = PRBU.div(elapsedTime, GAME_TICK);
         wet = OPMath.min(lastWaterTicks, total);
         dry = total - wet;
@@ -225,7 +232,6 @@ contract Plant is ERC721 {
 
     // Param and return values as wad
     function waterAbsorbed(uint256 absorbFactor, uint256 lastNormalBranch) internal view returns (uint256) {
-        console.log("waterAbosorbed", absorbFactor, lastNormalBranch);
         // absorbed amt related to healthy mass
         return OPMath.min(WATER_MAX_ABSORB, PRBU.mul(absorbFactor, lastNormalBranch));
     }
@@ -269,5 +275,25 @@ contract Plant is ERC721 {
         uint8 traitValue = uint8(shifted & mask);
         // FIXME: Should use constants 
         return PRBU.fromUint(1) + PRBU.mul(PRBU.fromUint(traitValue), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)));
+    }
+
+   /* --- Other functions --- */
+
+    // The following functions are overrides required by Solidity.
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
+        internal
+        override(ERC721, ERC721Enumerable)
+    {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

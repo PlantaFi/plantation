@@ -59,14 +59,15 @@ async function main() {
     const { dna } = await plant._plants(0);
     const Genes = parseGenes(dna.toString(2));
     const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
-    const printHead = () => console.log('MATIC    ,br.norm   ,+br.weak   ,+br.dead   ,=br.total  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
+    const printHead = () => console.log('MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,>=last sum  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
 
     async function printTree() {
         const Tree = await plant.state(0);
         const values = [Tree.lastNormalBranch, Tree.lastWeakBranch, Tree.lastDeadBranch, Tree.lastNormalBranch.add(Tree.lastWeakBranch).add(Tree.lastDeadBranch), Tree.lastWaterLevel, Tree.lastWaterUseRate, Tree.lastWaterTicks]
             .map(ethers.utils.formatEther)
+            .map(s => parseFloat(s).toFixed(2))
             .join('\t\t');
-        console.log(`${Balance}\t\t${values}`);
+        console.log(`${Balance.toFixed(2)}\t\t${values}`);
     }
 
     async function idle1hr() {
