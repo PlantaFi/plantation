@@ -19,6 +19,7 @@ async function next() {
     }
 }
 
+let Time = 0; // absolute internal timestamp in seconds
 let Balance = 10; // in MATIC
 const GasCost = 0.005; // base gas for every tx
 const WaterCost = 0.5;
@@ -81,9 +82,10 @@ const Tree = {
     norm: 1 /* must be >0 */,
     weak: 0,
     dead: 0,
+    h2oTil: 0,
+    h2oFrom: 0,
     // rest get initialized by water()
 }
-water();
 
 const branchLinearRate = 1.0 // base rate per hour
 const wetWeakenRate = 0.05;
@@ -91,38 +93,42 @@ const dryWeakenRate = 0.2;
 const strengthenRate = 0.1;
 const deathRate = 0.1;
 
-const minOr0 = (x, y) => max(0, min(x, y));
+const wetTime = (T) => (min(Time, T.h2oTil) - T.h2oFrom) / 3600;
+const dryTime = (T) => (max(0, Time - T.h2oTil)) / 3600;
 
-const wetTime = (T, t) => minOr0(t, T.h2oHours);
-const dryTime = (T, t) => max(0, t - T.h2oHours);
+const wetGrowth = (T) => wetTime(T) * factor('growth') * (branchLinearRate + Math.sqrt(T.norm));
+const wetWeaken = (T) => wetTime(T) * factor('weak')/2 * wetWeakenRate * T.norm;
+const dryWeaken = (T) => dryTime(T) * factor('weak')/2 * dryWeakenRate * T.norm;
+const wetStrengthen = (T) => wetTime(T) * strengthenRate * T.weak;
 
-const wetGrowth = (T, t) => wetTime(T, t) * factor('growth') * (branchLinearRate + Math.sqrt(T.norm));
-const wetWeaken = (T, t) => wetTime(T, t) * factor('weak')/2 * wetWeakenRate * T.norm;
-const dryWeaken = (T, t) => dryTime(T, t) * factor('weak')/2 * dryWeakenRate * T.norm;
-const wetStrengthen = (T, t) => wetTime(T, t) * strengthenRate * T.weak;
-
-const normBranchGrowth = (T, t) => wetGrowth(T, t) - wetWeaken(T, t) + wetStrengthen(T, t) - dryWeaken(T, t);
-const weakBranchGrowth = (T, t) =>                   wetWeaken(T, t) - wetStrengthen(T, t) + dryWeaken(T, t) - deadBranchGrowth(T, t);
-const deadBranchGrowth = (T, t) => factor('die') * deathRate * t * T.weak;
+const normBranchGrowth = (T) => wetGrowth(T) - wetWeaken(T) + wetStrengthen(T) - dryWeaken(T);
+const weakBranchGrowth = (T) =>                wetWeaken(T) - wetStrengthen(T) + dryWeaken(T) - deadBranchGrowth(T);
+const deadBranchGrowth = (T) => factor('die') * deathRate * (Time - T.h2oFrom)/3600 * T.weak;
 
 const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
-const printHead = () => console.log('MATIC    ,br.norm   ,+br.weak   ,+br.dead   ,=br.total  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
-const printTree = () => console.log([Balance, Tree.norm, Tree.weak, Tree.dead, Tree.norm+Tree.weak+Tree.dead, Tree.h2oLevel, Tree.h2oUseRate, Tree.h2oHours].map(x => x.toFixed(2)).join('\t\t'));
+const printHead = () => console.log('Time(H) ,MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,>=last sum  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
+const printTree = () => console.log([Time/3600, Balance, Tree.norm + normBranchGrowth(Tree), Tree.weak + weakBranchGrowth(Tree), Tree.dead + deadBranchGrowth(Tree), Tree.norm+Tree.weak+Tree.dead, Tree.h2oLevelFrom/3600, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
 
 // no time passes
 function water() {
+    update();
     Balance -= (WaterCost + GasCost);
-    Tree.h2oLevel = _absorbed(Tree.norm, Tree.weak, Tree.dead);
+    Tree.h2oLevelFrom = _absorbed(Tree.norm, Tree.weak, Tree.dead);
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
-    Tree.h2oHours = Tree.h2oLevel/Tree.h2oUseRate;
+    Tree.h2oTil = Time + 3600 * Tree.h2oLevelFrom/Tree.h2oUseRate;
+    Tree.h2oFrom = Time;
+}
+function update() {
+    // pre-calc before assign due to dependencies
+    [Tree.norm, Tree.weak, Tree.dead] = [Tree.norm + normBranchGrowth(Tree),
+        Tree.weak + weakBranchGrowth(Tree),
+        Tree.dead + deadBranchGrowth(Tree)];
 }
 function idle1hr() {
-    // pre-calc before assign due to dependencies
-    [Tree.norm, Tree.weak, Tree.dead] = [Tree.norm + normBranchGrowth(Tree, 1),
-        Tree.weak + weakBranchGrowth(Tree, 1),
-        Tree.dead + deadBranchGrowth(Tree, 1)];
-    Tree.h2oLevel = Math.max(0, Tree.h2oLevel - Tree.h2oUseRate);
-    Tree.h2oHours = Math.max(0, Tree.h2oHours - 1);
+    Time += 3600;
+}
+function currentH2oLevel() {
+    return max(0, Tree.h2oLevelFrom - (Time - Tree.h2oFrom)/3600 * Tree.h2oUseRate);
 }
 // prune efficiency - able to target most dead, many weak, accidently prune few normal
 const pruneDead = 0.8;
@@ -132,6 +138,7 @@ const pruneInfection = 0.05;
 
 // assume for now a constant "effort" of pruning which can be called multiple times
 function prune() {
+    update();
     Balance -= (PruneCost + GasCost);
     let targetAmount = 100;
     const deads = min(targetAmount, pruneDead * Tree.dead);
@@ -142,16 +149,23 @@ function prune() {
     Tree.weak -= weaks;
     Tree.dead -= deads;
 
-    // XXX update but not used until next watering - doesn't update h2oHours/level
+    // XXX update but not used until next watering - doesn't update level or h2oTil or From
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
     // TODO
     // can't track wounds alone w/o knowing number+when cut so make infections immediately weaken/die
     // so pruning will kill some healthy
 
 }
+
+const THRESH_ADULT_BRANCHES = 1000; // assume it should take about a week to reach adulthood
+const isAdult = (T) => T.isAdult ? true : T.norm > THRESH_ADULT_BRANCHES;
+const isHealthyAdult = (T) => T.norm > THRESH_ADULT_BRANCHES;
+
 async function main() {
     printGenes();
     printHead();
+    water();
+    printTree();
     while (1) {
         await next();
     }
