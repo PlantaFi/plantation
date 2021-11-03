@@ -106,29 +106,29 @@ const weakBranchGrowth = (T) =>                wetWeaken(T) - wetStrengthen(T) +
 const deadBranchGrowth = (T) => factor('die') * deathRate * (Time - T.h2oFrom)/3600 * T.weak;
 
 const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
-const printHead = () => console.log('Time(H) ,MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,>=last sum  ,h2o.level,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
-const printTree = () => console.log([Time/3600, Balance, Tree.norm + normBranchGrowth(Tree), Tree.weak + weakBranchGrowth(Tree), Tree.dead + deadBranchGrowth(Tree), Tree.norm+Tree.weak+Tree.dead, Tree.h2oLevelFrom/3600, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
+const printHead = () => console.log('Time(H) ,MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,>=last sum  ,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
+const printTree = () => console.log([Time/3600, Balance, Tree.norm + normBranchGrowth(Tree), Tree.weak + weakBranchGrowth(Tree), Tree.dead + deadBranchGrowth(Tree), Tree.norm+Tree.weak+Tree.dead, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
 
 // no time passes
 function water() {
-    update();
+    updateBranches();
     Balance -= (WaterCost + GasCost);
-    Tree.h2oLevelFrom = _absorbed(Tree.norm, Tree.weak, Tree.dead);
+    // XXX LevelFrom not needed if we save Til
+    const _h2oLevelFrom = _absorbed(Tree.norm, Tree.weak, Tree.dead);
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
-    Tree.h2oTil = Time + 3600 * Tree.h2oLevelFrom/Tree.h2oUseRate;
+    Tree.h2oTil = Time + 3600 * _h2oLevelFrom/Tree.h2oUseRate;
     Tree.h2oFrom = Time;
 }
-function update() {
+function updateBranches() {
     // pre-calc before assign due to dependencies
     [Tree.norm, Tree.weak, Tree.dead] = [Tree.norm + normBranchGrowth(Tree),
         Tree.weak + weakBranchGrowth(Tree),
         Tree.dead + deadBranchGrowth(Tree)];
+    // growth depends on h2oFrom and h2oTil and branch counts. h2oTil remains but h2oFrom ...
+    Tree.h2oFrom = Time;
 }
 function idle1hr() {
     Time += 3600;
-}
-function currentH2oLevel() {
-    return max(0, Tree.h2oLevelFrom - (Time - Tree.h2oFrom)/3600 * Tree.h2oUseRate);
 }
 // prune efficiency - able to target most dead, many weak, accidently prune few normal
 const pruneDead = 0.8;
@@ -138,7 +138,7 @@ const pruneInfection = 0.05;
 
 // assume for now a constant "effort" of pruning which can be called multiple times
 function prune() {
-    update();
+    updateBranches();
     Balance -= (PruneCost + GasCost);
     let targetAmount = 100;
     const deads = min(targetAmount, pruneDead * Tree.dead);
