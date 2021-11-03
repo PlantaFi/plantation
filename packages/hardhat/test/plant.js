@@ -23,6 +23,14 @@ describe("Plant", () => {
         setTimeout(done, 1000);
     });
 
+    describe("deployment", () => {
+
+        it("should deploy", async () => {
+            const Plant = await ethers.getContractFactory("Plant");
+            await Plant.deploy();
+        });
+    });
+
     describe("traitFactor()", () => {
         const setupMock = deployments.createFixture(async hre => {
             await hre.deployments.fixture();

@@ -59,7 +59,7 @@ contract Plant is ERC721, ERC721Enumerable {
     }
 
     /// Plants state
-    mapping (uint256 => PlantState) public plantStates;
+    mapping (uint256 => PlantState) plantStates;
 
     constructor() ERC721("Plant", "PLANT") {
         buy();
