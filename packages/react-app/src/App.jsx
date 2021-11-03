@@ -1,7 +1,8 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 //import Torus from "@toruslabs/torus-embed"
 import WalletLink from "walletlink";
-import { Alert, Button, Col, Menu, Row } from "antd";
+import { Alert, Button, Col, Menu, Row, Typography, Card, Avatar, Divider } from "antd";
+import { HomeOutlined } from '@ant-design/icons';
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
@@ -21,7 +22,7 @@ import {
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 // import Hints from "./Hints";
-import { ExampleUI, Hints, Subgraph } from "./views";
+import { ExampleUI, Hints, Subgraph, Banks, Shop, Plant, Map } from "./views";
 
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
@@ -33,6 +34,14 @@ import Fortmatic from "fortmatic";
 import Authereum from "authereum";
 
 const { ethers } = require("ethers");
+const { Text, Title } = Typography;
+const {Meta} = Card;
+
+const centerStyle = {
+  position: 'relative',
+  display: 'flex',
+  justifyContent: 'center',
+}
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -149,7 +158,8 @@ const web3Modal = new Web3Modal({
     // },
     "custom-walletlink": {
       display: {
-        logo: "https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0",
+        logo:
+          "https://play-lh.googleusercontent.com/PjoJoG27miSglVBXoXrxBSLveV6e3EeBPpNY55aiUUBM9Q1RCETKCOqdOkX2ZydqVf0",
         name: "Coinbase",
         description: "Connect to Coinbase Wallet (not Coinbase App)",
       },
@@ -383,6 +393,10 @@ function App(props) {
     );
   }
 
+  let title = "";
+  title = <div style={{ textAlign: "center"}}><Title mark code>plantation 1.0</Title>
+  </div>;
+
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
@@ -450,26 +464,45 @@ function App(props) {
       {/* ✏️ Edit the header and change the title to your project name */}
       <Header />
       {networkDisplay}
+      {title}
       <BrowserRouter>
-        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
+        <Menu style={ centerStyle} selectedKeys={[route]} mode="horizontal">
+          <Menu.Item key="/" icon={<HomeOutlined />}>
             <Link
               onClick={() => {
                 setRoute("/");
               }}
               to="/"
-            >
-              YourContract
-            </Link>
+            />
           </Menu.Item>
-          <Menu.Item key="/hints">
+          <Menu.Item key="/banks">
             <Link
               onClick={() => {
-                setRoute("/hints");
+                setRoute("/banks");
               }}
-              to="/hints"
+              to="/banks"
             >
-              Hints
+              Banks
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/map">
+            <Link
+              onClick={() => {
+                setRoute("/map");
+              }}
+              to="/map"
+            >
+              Map
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="/shop">
+            <Link
+              onClick={() => {
+                setRoute("/shop");
+              }}
+              to="/shop"
+            >
+              Shop
             </Link>
           </Menu.Item>
           <Menu.Item key="/exampleui">
@@ -482,26 +515,6 @@ function App(props) {
               ExampleUI
             </Link>
           </Menu.Item>
-          <Menu.Item key="/mainnetdai">
-            <Link
-              onClick={() => {
-                setRoute("/mainnetdai");
-              }}
-              to="/mainnetdai"
-            >
-              Mainnet DAI
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/subgraph">
-            <Link
-              onClick={() => {
-                setRoute("/subgraph");
-              }}
-              to="/subgraph"
-            >
-              Subgraph
-            </Link>
-          </Menu.Item>
         </Menu>
 
         <Switch>
@@ -512,13 +525,25 @@ function App(props) {
                 and give you a form to interact with it locally
             */}
 
-            <Contract
-              name="YourContract"
-              signer={userSigner}
-              provider={localProvider}
-              address={address}
-              blockExplorer={blockExplorer}
-              contractConfig={contractConfig}
+            <Plant
+
+            />
+          </Route>
+
+          <Route path="/shop">
+            <Shop
+            purpose={purpose}
+            />
+          </Route>
+          <Route path="/banks">
+            <Banks
+                purpose={purpose}
+            />
+          </Route>
+
+          <Route path="/map">
+            <Map
+                purpose={purpose}
             />
           </Route>
           <Route path="/hints">
@@ -566,14 +591,6 @@ function App(props) {
             />
             */}
           </Route>
-          <Route path="/subgraph">
-            <Subgraph
-              subgraphUri={props.subgraphUri}
-              tx={tx}
-              writeContracts={writeContracts}
-              mainnetProvider={mainnetProvider}
-            />
-          </Route>
         </Switch>
       </BrowserRouter>
 
@@ -593,8 +610,7 @@ function App(props) {
           blockExplorer={blockExplorer}
         />
         {faucetHint}
-      </div>
-
+  </div>
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
         <Row align="middle" gutter={[4, 4]}>
@@ -623,14 +639,8 @@ function App(props) {
 
         <Row align="middle" gutter={[4, 4]}>
           <Col span={24}>
-            {
-              /*  if the local provider has a signer, let's show the faucet:  */
-              faucetAvailable ? (
-                <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
-              ) : (
-                ""
-              )
-            }
+            {/*  if the local provider has a signer, let's show the faucet:  */
+            faucetAvailable ? <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} /> : ""}
           </Col>
         </Row>
       </div>

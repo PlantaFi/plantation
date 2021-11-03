@@ -1,11 +1,15 @@
 // deploy/00_deploy_your_contract.js
 
-//const { ethers } = require("hardhat");
+const { ethers } = require("hardhat");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
+<<<<<<< HEAD
+  await deploy("Land", {
+=======
   await deploy("Plant", {
+>>>>>>> e15afbf88d02d208b8b3b9e10db63491196c7302
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
     //args: [ "Hello", ethers.utils.parseEther("1.5") ],

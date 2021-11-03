@@ -67,8 +67,13 @@
       "**/hardhat-ts/**"
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.3.2"
+  },
   "devDependencies": {
     "husky": "^7.0.2"
-  }
+  },
+  "main": "index.js",
+  "repository": "https://github.com/PlantaFi/plantation.git",
+  "license": "MIT"
 }
