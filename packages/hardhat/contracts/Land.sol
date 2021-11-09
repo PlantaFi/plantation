@@ -1,33 +1,31 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Land is ERC721, Ownable {
-  using Counters for Counters.Counter;
-  Counters.Counter private _tokenIds;
 
   constructor() public ERC721("Land", "Land") {
    // _setBaseURI("https://ipfs.io/ipfs/");
   }
 
-  function mintItem(address to /*, string memory tokenURI*/)
-      public
-      onlyOwner
-      returns (uint256)
-  {
-      _tokenIds.increment();
-
-      uint256 id = _tokenIds.current();
-      _mint(to, id);
-     // _setTokenURI(id, tokenURI);
-
-      return id;
-  }
-
+  // TODO initialize to [0, 0, 0, 0]
   uint256[4] private _mapMinted = [2**256 - 0xFFFF, 0xF0F, 255, 1023];
   uint256[4] private _mapPlanted = [2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
+  mapping(uint16 => uint256) public land2Plant;
+
+  function mintAt(address to, uint16 landTokenId)
+      public
+      returns (uint16)
+  {
+    // TODO need to pay to mint
+    require(!isMinted(landTokenId), "Land is already minted");
+    _mint(to, landTokenId);
+    setMinted(landTokenId);
+    // _setTokenURI(id, tokenURI);
+
+    return landTokenId;
+  }
 
   // 0b0000... 0001 <- most sig 32 bits of 256 is 1st row
   //   01010...0000 <- next 32 bits, 2nd row... 4 rows of 32 for _mapMinted[0]
@@ -68,20 +66,17 @@ contract Land is ERC721, Ownable {
     return _mapPlanted;
   }
   function implant(uint16 landTokenId, uint256 plantTokenId) public {
-    // require that the mapping for this landTokenId is empty
-
+    require(!isPlanted(landTokenId), "Land is already occupied by Plant");
+    // TODO are we allowed by the Plant to plant here?
     setPlanted(landTokenId);
-
-    // TODO
-    // save plantTokenId to mapping for landTokenId
+    land2Plant[landTokenId] = plantTokenId;
   }
   // Reverse of implant. AKA burn the plant.
   function unplant(uint16 landTokenId, uint256 plantTokenId) public {
     // remove above mapping
   }
-  function plantByLand(uint16 landTokenId) public returns (uint256) {
-    // return from mapping
-    return 1;
+  function plantByLand(uint16 landTokenId) public view returns (uint256) {
+    return land2Plant[landTokenId];
   }
   function landInfo(uint16 landTokenId) public view returns (uint16) {
     return 1;
