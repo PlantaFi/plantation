@@ -10,7 +10,7 @@
   ],
   "private": true,
   "scripts": {
-      "demo": "yarn workspace @scaffold-eth/hardhat deploy --reset && yarn workspace plantation-console-demo demo",
+    "demo": "yarn workspace @scaffold-eth/hardhat deploy --reset && yarn workspace plantation-console-demo demo",
     "react-app:build": "yarn workspace @scaffold-eth/react-app build --max-old-space-size=12288",
     "react-app:eject": "yarn workspace @scaffold-eth/react-app eject",
     "react-app:start": "yarn workspace @scaffold-eth/react-app start",
@@ -68,7 +68,8 @@
     ]
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.3.2"
+    "@openzeppelin/contracts": "^4.3.2",
+    "eslint-plugin-prettier": "^4.0.0"
   },
   "devDependencies": {
     "husky": "^7.0.2"
