@@ -71,6 +71,7 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
     // TODO are we allowed by the Plant to plant here?
     setPlanted(landTokenId);
     land2Plant[landTokenId] = plantTokenId;
+    // TODO coordinate with Plant contract when implanting/unplanting
   }
   // Reverse of implant. AKA burn the plant.
   function unplant(uint16 landTokenId, uint256 plantTokenId) public {
@@ -79,10 +80,20 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
   function plantByLand(uint16 landTokenId) public view returns (uint256) {
     return land2Plant[landTokenId];
   }
-  function landInfo(uint16 landTokenId) public view returns (uint16) {
-    return 1;
+  // Returns list of landTokenIds, isPlanted status, and plantTokenIds if land isPlanted
+  function landInfoByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory) {
+    uint16 balance = uint16(balanceOf(addr));
+    uint16 count;
+    uint16[] memory landTokenIds = new uint16[](balance);
+    bool[] memory isPlanteds = new bool[](balance);
+    uint256[] memory plantTokenIds = new uint256[](balance);
+    for (uint16 i; i < balance; i++) {
+      landTokenIds[i] = uint16(tokenOfOwnerByIndex(addr, i));
+      isPlanteds[i] = isPlanted(landTokenIds[i]);
+      plantTokenIds[i] = plantByLand(landTokenIds[i]);
+    }
+    return (landTokenIds, isPlanteds, plantTokenIds);
   }
-  
 
   /* --- Other functions --- */
 
