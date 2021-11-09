@@ -11,8 +11,8 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
   }
 
   // TODO initialize to [0, 0, 0, 0]
-  uint256[4] private _mapMinted = [2**256 - 0xFFFF, 0xF0F, 255, 1023];
-  uint256[4] private _mapPlanted = [2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
+  uint256[4] private _mapMinted = [0,0,0,0];//[2**256 - 0xFFFF, 0xF0F, 255, 1023];
+  uint256[4] private _mapPlanted = [0,0,0,0];//2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
   mapping(uint16 => uint256) public land2Plant;
 
   function mintAt(address to, uint16 landTokenId)
@@ -83,7 +83,6 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
   // Returns list of landTokenIds, isPlanted status, and plantTokenIds if land isPlanted
   function landInfoByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory) {
     uint16 balance = uint16(balanceOf(addr));
-    uint16 count;
     uint16[] memory landTokenIds = new uint16[](balance);
     bool[] memory isPlanteds = new bool[](balance);
     uint256[] memory plantTokenIds = new uint256[](balance);
@@ -93,6 +92,33 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
       plantTokenIds[i] = plantByLand(landTokenIds[i]);
     }
     return (landTokenIds, isPlanteds, plantTokenIds);
+  }
+  // will return a square of the land +/- distance from given id in x/y coordinates
+  function landInfoByDistance(uint16 landTokenId, uint8 distance) external view returns (uint16[] memory, address[] memory, bool[] memory, bool[] memory, uint256[] memory) {
+    uint16 length = distance + 1 + distance;
+    int16 _id = int16(landTokenId); // Prevents: CompilerError: Stack too deep, try removing local variables.
+    int8 _dist = int8(distance);
+    // Return land as a helper. Ids are predictable and sequential based on function args.
+    uint16[] memory landTokenIds = new uint16[](length**2);
+    address[] memory owners = new address[](length**2);
+    bool[] memory isMinteds = new bool[](length**2);
+    bool[] memory isPlanteds = new bool[](length**2);
+    uint256[] memory plantTokenIds = new uint256[](length**2);
+    uint16 i = 0;
+    for (int16 y = _id / 32 - _dist; y <= _id / 32 + _dist; y++) {
+      for (int16 x = _id % 32 - _dist; x <= _id % 32 + _dist; x++) {
+        if (y >= 0 && y < 32 && x >= 0 && x < 32) {
+          landTokenIds[i] = uint16(y * 32 + x);
+          isMinteds[i] = isMinted(landTokenIds[i]);
+          owners[i] = isMinteds[i] ? ownerOf(landTokenIds[i]) : address(0);
+          isPlanteds[i] = isPlanted(landTokenIds[i]);
+          plantTokenIds[i] = plantByLand(landTokenIds[i]);
+        }
+        i++; // when distance is off map then array value is initial/undefined
+      }
+    }
+    return (landTokenIds, owners, isMinteds, isPlanteds, plantTokenIds);
+    
   }
 
   /* --- Other functions --- */
