@@ -569,6 +569,37 @@ function App(props) {
               setPurposeEvents={setPurposeEvents}
             />
           </Route>
+          <Route path="/land">
+            <Contract
+              name="Land"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
+          <Route path="/plant">
+            <Contract
+              name="Plant"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+            <Contract
+              name="YourContract"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
           <Route path="/mainnetdai">
             <Contract
               name="DAI"
