@@ -82,6 +82,7 @@ const Tree = {
     norm: 1 /* must be >0 */,
     weak: 0,
     dead: 0,
+    deadPruned: 0,
     h2oTil: 0,
     h2oFrom: 0,
     // rest get initialized by water()
@@ -106,8 +107,8 @@ const weakBranchGrowth = (T) =>                wetWeaken(T) - wetStrengthen(T) +
 const deadBranchGrowth = (T) => factor('die') * deathRate * (Time - T.h2oFrom)/3600 * T.weak;
 
 const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
-const printHead = () => console.log('Time(H) ,MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,>=last sum  ,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
-const printTree = () => console.log([Time/3600, Balance, Tree.norm + normBranchGrowth(Tree), Tree.weak + weakBranchGrowth(Tree), Tree.dead + deadBranchGrowth(Tree), Tree.norm+Tree.weak+Tree.dead, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
+const printHead = () => console.log('Time(H) ,MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,deadPruned  ,>=last sum  ,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
+const printTree = () => console.log([Time/3600, Balance, Tree.norm + normBranchGrowth(Tree), Tree.weak + weakBranchGrowth(Tree), Tree.dead + deadBranchGrowth(Tree), Tree.deadPruned, Tree.norm+Tree.weak+Tree.dead, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
 
 // no time passes
 function water() {
@@ -126,6 +127,10 @@ function updateBranches() {
         Tree.dead + deadBranchGrowth(Tree)];
     // growth depends on h2oFrom and h2oTil and branch counts. h2oTil remains but h2oFrom ...
     Tree.h2oFrom = Time;
+    // Can't let From > Til
+    if (Time > Tree.h2oTil) {
+      Tree.h2oTil = Time;
+    }
 }
 function idle1hr() {
     Time += 3600;
@@ -148,6 +153,7 @@ function prune() {
     Tree.norm -= norms;
     Tree.weak -= weaks;
     Tree.dead -= deads;
+    Tree.deadPruned += deads;
 
     // XXX update but not used until next watering - doesn't update level or h2oTil or From
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
