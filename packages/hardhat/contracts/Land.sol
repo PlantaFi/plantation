@@ -25,7 +25,7 @@ modifier hasFee() {
         _;
     }
 
-  function mintAt(address to, uint16 landTokenId) public hasFee returns (uint16){
+  function mintAt(address to, uint16 landTokenId) public payable  hasFee returns (uint16){
     // TODO need to pay to mint
     require(!isMinted(landTokenId), "Land is already minted");
     _mint(to, landTokenId);
@@ -36,7 +36,7 @@ modifier hasFee() {
   }
 
   function changeFee (uint newFee ) public onlyOwner {
-	  fee = newFee
+	  fee = newFee;
   }
 
   // 0b0000... 0001 <- most sig 32 bits of 256 is 1st row
