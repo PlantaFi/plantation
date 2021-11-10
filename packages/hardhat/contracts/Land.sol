@@ -17,13 +17,15 @@ uint fee = 0.0005 ether; // fee in Matic Token
   uint256[4] private _mapMinted = [0,0,0,0];//[2**256 - 0xFFFF, 0xF0F, 255, 1023];
   uint256[4] private _mapPlanted = [0,0,0,0];//2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
   mapping(uint16 => uint256) public land2Plant;
+  mapping  (address => uint) public feeBalance;
 
+modifier hasFee() {
+        require(msg.value >= fee ,"must pay fee");
+        feeBalance[msg.sender]=msg.value;
+        _;
+    }
 
-modifer mintFee(){
-require(fee,"please pay Land fee");
-	_;
-}
-  function mintAt(address to, uint16 landTokenId) public mintFee returns (uint16{
+  function mintAt(address to, uint16 landTokenId) public hasFee returns (uint16){
     // TODO need to pay to mint
     require(!isMinted(landTokenId), "Land is already minted");
     _mint(to, landTokenId);
