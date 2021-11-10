@@ -13,7 +13,7 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
   // TODO initialize to [0, 0, 0, 0]
   uint256[4] private _mapMinted = [0,0,0,0];//[2**256 - 0xFFFF, 0xF0F, 255, 1023];
   uint256[4] private _mapPlanted = [0,0,0,0];//2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
-  mapping(uint16 => uint256) public land2Plant;
+  mapping(uint16 => uint256) private land2Plant;
 
   function mintAt(address to, uint16 landTokenId)
       public
