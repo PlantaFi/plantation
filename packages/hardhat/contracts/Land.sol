@@ -6,6 +6,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Land is ERC721, ERC721Enumerable, Ownable {
 
+
+
+uint fee = 0.0005 ether; // fee in Matic Token
   constructor() public ERC721("Land", "Land") {
    // _setBaseURI("https://ipfs.io/ipfs/");
   }
@@ -14,11 +17,15 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
   uint256[4] private _mapMinted = [0,0,0,0];//[2**256 - 0xFFFF, 0xF0F, 255, 1023];
   uint256[4] private _mapPlanted = [0,0,0,0];//2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
   mapping(uint16 => uint256) private land2Plant;
+  mapping  (address => uint) public feeBalance;
 
-  function mintAt(address to, uint16 landTokenId)
-      public
-      returns (uint16)
-  {
+modifier hasFee() {
+        require(msg.value >= fee ,"must pay fee");
+        feeBalance[msg.sender]=msg.value;
+        _;
+    }
+
+  function mintAt(address to, uint16 landTokenId) public payable  hasFee returns (uint16){
     // TODO need to pay to mint
     require(!isMinted(landTokenId), "Land is already minted");
     _mint(to, landTokenId);
@@ -26,6 +33,10 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
     // _setTokenURI(id, tokenURI);
 
     return landTokenId;
+  }
+
+  function changeFee (uint newFee ) public onlyOwner {
+	  fee = newFee;
   }
 
   // 0b0000... 0001 <- most sig 32 bits of 256 is 1st row
