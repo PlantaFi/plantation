@@ -2,21 +2,22 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Land is ERC721, ERC721Enumerable, Ownable {
 
-
+  using Counters for Counters.Counter;
+  mapping(uint16 => Counters.Counter) private _burns;
 
 uint fee = 0.0005 ether; // fee in Matic Token
   constructor() public ERC721("Land", "Land") {
    // _setBaseURI("https://ipfs.io/ipfs/");
   }
 
-  // TODO initialize to [0, 0, 0, 0]
-  uint256[4] private _mapMinted = [0,0,0,0];//[2**256 - 0xFFFF, 0xF0F, 255, 1023];
+  uint256[4] private _mapMinted = [0,0,0,0];// Example: [2**256 - 0xFFFF, 0xF0F, 255, 1023];
   uint256[4] private _mapPlanted = [0,0,0,0];//2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
-  mapping(uint16 => uint256) private land2Plant;
+  mapping(uint16 => uint256) private _land2plant;
   mapping  (address => uint) public feeBalance;
 
 modifier hasFee() {
@@ -68,6 +69,9 @@ modifier hasFee() {
   function setPlanted(uint16 landTokenId) public {
     _mapPlanted[intIdx(landTokenId)] |= 2**255 >> bitIdx(landTokenId);
   }
+  function clearPlanted(uint16 landTokenId) public {
+    _mapPlanted[intIdx(landTokenId)] &= ~(uint16(1) << bitIdx(landTokenId));
+  }
 
   // returns 1024 bits in order of tokenId where 1 if land there is claimed/owned already
   function mapMinted() external view returns (uint256[4] memory) {
@@ -81,15 +85,20 @@ modifier hasFee() {
     require(!isPlanted(landTokenId), "Land is already occupied by Plant");
     // TODO are we allowed by the Plant to plant here?
     setPlanted(landTokenId);
-    land2Plant[landTokenId] = plantTokenId;
+    _land2plant[landTokenId] = plantTokenId;
     // TODO coordinate with Plant contract when implanting/unplanting
   }
-  // Reverse of implant. AKA burn the plant.
-  function unplant(uint16 landTokenId, uint256 plantTokenId) public {
+  // Reverse of implant.
+  function handleBurn(uint16 landTokenId) public {
     // remove above mapping
+    require(isPlanted(landTokenId), "Land had no Plant");
+    clearPlanted(landTokenId);
+    delete(_land2plant[landTokenId]);
+    _burns[landTokenId].increment();
   }
+  // Returns a plantTokenId but will return 0 if unplanted. Check isPlanted.
   function plantByLand(uint16 landTokenId) public view returns (uint256) {
-    return land2Plant[landTokenId];
+    return _land2plant[landTokenId];
   }
   // Returns list of landTokenIds, isPlanted status, and plantTokenIds if land isPlanted
   function landInfoByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory) {
