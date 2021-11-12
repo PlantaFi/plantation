@@ -2,7 +2,7 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 //import Torus from "@toruslabs/torus-embed"
 import WalletLink from "walletlink";
 import { Alert, Button, Col, Menu, Row, Typography, Card, Avatar, Divider } from "antd";
-import { HomeOutlined } from '@ant-design/icons';
+import { HomeOutlined } from "@ant-design/icons";
 import "antd/dist/antd.css";
 import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
@@ -35,13 +35,13 @@ import Authereum from "authereum";
 
 const { ethers } = require("ethers");
 const { Text, Title } = Typography;
-const {Meta} = Card;
+const { Meta } = Card;
 
 const centerStyle = {
-  position: 'relative',
-  display: 'flex',
-  justifyContent: 'center',
-}
+  position: "relative",
+  display: "flex",
+  justifyContent: "center",
+};
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -394,8 +394,13 @@ function App(props) {
   }
 
   let title = "";
-  title = <div style={{ textAlign: "center"}}><Title mark code>plantation 1.0</Title>
-  </div>;
+  title = (
+    <div style={{ textAlign: "center" }}>
+      <Title mark code>
+        plantation 1.0
+      </Title>
+    </div>
+  );
 
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
@@ -466,7 +471,7 @@ function App(props) {
       {networkDisplay}
       {title}
       <BrowserRouter>
-        <Menu style={ centerStyle} selectedKeys={[route]} mode="horizontal">
+        <Menu style={centerStyle} selectedKeys={[route]} mode="horizontal">
           <Menu.Item key="/" icon={<HomeOutlined />}>
             <Link
               onClick={() => {
@@ -505,14 +510,25 @@ function App(props) {
               Shop
             </Link>
           </Menu.Item>
-          <Menu.Item key="/exampleui">
+          <Menu.Item key="/land">
             <Link
               onClick={() => {
-                setRoute("/exampleui");
+                setRoute("/land");
               }}
-              to="/exampleui"
+              to="/land"
             >
-              ExampleUI
+              Land
+            </Link>
+          </Menu.Item>
+
+          <Menu.Item key="/mainnetdai">
+            <Link
+              onClick={() => {
+                setRoute("/mainnetdai");
+              }}
+              to="/mainnetdai"
+            >
+              mainnetdai
             </Link>
           </Menu.Item>
         </Menu>
@@ -526,25 +542,63 @@ function App(props) {
             */}
 
             <Plant
-
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              purpose={purpose}
+              setPurposeEvents={setPurposeEvents}
             />
           </Route>
 
           <Route path="/shop">
             <Shop
-            purpose={purpose}
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              purpose={purpose}
+              setPurposeEvents={setPurposeEvents}
             />
           </Route>
           <Route path="/banks">
             <Banks
-                purpose={purpose}
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              purpose={purpose}
+              setPurposeEvents={setPurposeEvents}
             />
           </Route>
 
           <Route path="/map">
-            <Map
-                purpose={purpose}
-            />
+            <Map address={address}
+            userSigner={userSigner}
+            mainnetProvider={mainnetProvider}
+            localProvider={localProvider}
+            yourLocalBalance={yourLocalBalance}
+            price={price}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
+            purpose={purpose}
+            setPurposeEvents={setPurposeEvents} />
           </Route>
           <Route path="/hints">
             <Hints
@@ -602,16 +656,24 @@ function App(props) {
           </Route>
           <Route path="/mainnetdai">
             <Contract
-              name="DAI"
-              customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
+              name="Plant"
               signer={userSigner}
-              provider={mainnetProvider}
+              provider={localProvider}
               address={address}
-              blockExplorer="https://etherscan.io/"
+              blockExplorer={blockExplorer}
               contractConfig={contractConfig}
-              chainId={1}
             />
             {/*
+              <Contract
+                name="plant"
+                customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
+                signer={userSigner}
+                provider={mainnetProvider}
+                address={address}
+                blockExplorer="https://etherscan.io/"
+                contractConfig={contractConfig}
+                chainId={1}
+              />
             <Contract
               name="UNI"
               customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
@@ -641,7 +703,7 @@ function App(props) {
           blockExplorer={blockExplorer}
         />
         {faucetHint}
-  </div>
+      </div>
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
         <Row align="middle" gutter={[4, 4]}>
