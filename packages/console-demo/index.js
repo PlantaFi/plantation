@@ -9,6 +9,7 @@ async function next() {
         { hotkey: 'i', title: 'Idle (pass 1 hour)', cb: idle1hr, selected: true },
         { hotkey: 'w', title: 'Water (cost 0.1)', cb: water },
         { hotkey: 'p', title: 'Prune', cb: prune },
+        { hotkey: 'b', title: 'Burn (and replant)', cb: burn },
         { hotkey: 'd', title: 'Debug', cb: debugSwitch },
         { separator: true },
         { hotkey: 'q', title: 'Quit', cb: process.exit },
@@ -28,6 +29,8 @@ let Balance = 10; // in MATIC
 const GasCost = 0.005; // base gas for every tx
 const WaterCost = 0.5;
 const PruneCost = 0.1;
+
+let LandBurns = 10; // boosts longevity by 4%
 
 /*
 bits
@@ -83,16 +86,17 @@ function _useRate(norm, weak, dead) {
     // weak/dead will spend absorbed water
     return /* DNAwaterUseFactor * */ (1 + Math.floor(Math.sqrt(norm+weak+dead)));
 }
-const Tree = {
-    isAlive: true,
-    frailty: 1.0, // multiplies weakenRates as multiple of 5000 deadPruned
-    norm: 1 /* must be >0 */,
-    weak: 0,
-    dead: 0,
-    deadPruned: 0,
-    h2oTil: 0,
-    h2oFrom: 0,
-    // rest get initialized by water()
+const Tree = { }
+function initTree() {
+    Tree.isAlive = true;
+    Tree.frailty = 1.0; // multiplies weakenRates as multiple of 5000 deadPruned
+    Tree.norm = 1 /* must be >0 */;
+    Tree.weak = 0;
+    Tree.dead = 0;
+    Tree.deadPruned = 0;
+    Tree.h2oTil = Time;
+    Tree.h2oFrom = Time;
+    water();
 }
 
 const branchLinearRate = 1.0 // base rate per hour
@@ -195,7 +199,7 @@ function prune() {
     Tree.weak -= weaks;
     Tree.dead -= deads;
     Tree.deadPruned += deads;
-    Tree.frailty = 1+(Tree.deadPruned/(factor('long') * FRAILTY_THRESH))**3;
+    Tree.frailty = 1+(Tree.deadPruned/((1 + .04*LandBurns) * factor('long') * FRAILTY_THRESH))**3;
 
     // XXX update but not used until next watering - doesn't update level or h2oTil or From
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
@@ -205,6 +209,15 @@ function prune() {
 
 }
 
+function burn() {
+  if (Tree.deadPruned > 1000) {
+    LandBurns++;
+  } else {
+    console.log('Burned too early to get land bonus');
+  }
+  initTree();
+}
+
 const THRESH_ADULT_BRANCHES = 1000; // assume it should take about a week to reach adulthood
 const isAdult = (T) => T.isAdult ? true : T.norm > THRESH_ADULT_BRANCHES;
 const isHealthyAdult = (T) => T.norm > THRESH_ADULT_BRANCHES;
@@ -212,7 +225,7 @@ const isHealthyAdult = (T) => T.norm > THRESH_ADULT_BRANCHES;
 async function main() {
     printGenes();
     printHead();
-    water();
+    initTree();
     printTree();
     while (1) {
         await next();
