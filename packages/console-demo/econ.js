@@ -11,6 +11,7 @@ async function next() {
         //{ hotkey: 'p', title: 'Sell 1 FRUIT for PLANT seed', cb: fruit2plant },
         { hotkey: 'm', title: `Sell 1 FRUIT for ${maticOutGivenFruitIn(1)} MATIC`, cb: fruit2matic },
         { hotkey: 'M', title: `Sell 10 FRUIT for ${maticOutGivenFruitIn(10)} MATIC`, cb: _10fruit2matic },
+        { hotkey: 'b', title: `Buy Plant-seed for ${nextSeedPrice()} FRUIT`, cb: fruit2plant },
         { separator: true },
         { hotkey: 'q', title: 'Quit', cb: process.exit },
     ])
@@ -46,7 +47,7 @@ function initState() {
   Player.maticBalance = 1000;
   Player.fruitBalance = 0;
   Player.preFruitClaim = 0; // aggregate all plants unharvested, assume same timing
-  Player.plantBalance = 0; // no need to track, assume 1
+  Player.plantBalance = 1;
   Player.fertilizedFrom = 0; // days since fertilize - reach fertilizePeriod for 100%
 
   Game.fertilizePeriod = 3 * 24 * 3600; // seconds to fully ripen
@@ -58,6 +59,8 @@ function initState() {
   Fruit.totalSupply = 0; // theoretical price is totalSupply (not pool balance) / maticPoolBalance
   Game.fertilizeTaxRate = 0.05;
   Game.harvestTaxRate = 0.025;
+  Game.seedsSold = 0; // used to calculate next seed's price
+  Game.seedBurnTake = 0.5; // how much FRUIT from seed sale is burned vs taken as profit
 }
 
 function initFruitPrice() {
@@ -67,8 +70,8 @@ function initFruitPrice() {
 }
 
 const pad12 = (s) => (s + '            ').slice(0, 12);
-const printHead = () => console.log('Player,---,---,---,---,---,Game Profit,,Game Pool,\nMATIC,FRUIT,preFruit,hr fert,ripe,bonus,MATIC,FRUIT,MATIC,FRUIT,supply FRUIT'.split(',').map(x => pad12(x)).join(''));
-const printState = () => console.log([Player.maticBalance, Player.fruitBalance, Player.preFruitClaim, (Time - Player.fertilizedFrom) / 3600, harvestable()[0], harvestable()[1], Game.maticPotBalance, Game.fruitPotBalance, GamePool.maticBalance, GamePool.fruitBalance, Fruit.totalSupply].map(x => pad12((x).toFixed(2))).join(''));
+const printHead = () => console.log('Player,---,---,---,---,---,---,Game Profit,,Game Pool,\nMATIC,Plants,FRUIT,preFruit,hr fert,ripe,bonus,MATIC,FRUIT,MATIC,FRUIT,supply FRUIT'.split(',').map(x => pad12(x)).join(''));
+const printState = () => console.log([Player.maticBalance, Player.plantBalance, Player.fruitBalance, Player.preFruitClaim, (Time - Player.fertilizedFrom) / 3600, harvestable()[0], harvestable()[1], Game.maticPotBalance, Game.fruitPotBalance, GamePool.maticBalance, GamePool.fruitBalance, Fruit.totalSupply].map(x => pad12((x).toFixed(2))).join(''));
 
 function idle1h() {
   Time += 3600;
@@ -153,8 +156,20 @@ function fruit2matic(fruitIn=1) {
   transfer(GamePool, Player, 'matic', maticOut);
 }
 const _10fruit2matic = () => fruit2matic(10);
+const nextSeedPrice = () => 2 + 0.1 * Game.seedsSold;
 
 function fruit2plant() {
+  if (Player.fruitBalance < nextSeedPrice()) {
+    console.log('OOPS you need more fruit than ', nextSeedPrice());
+    return;
+  }
+  Player.fruitBalance -= nextSeedPrice();
+  // BURN a portion of the FRUIT and receive the rest as profit
+  Fruit.totalSupply -= nextSeedPrice() * Game.seedBurnTake;
+  Game.fruitPotBalance += nextSeedPrice() * (1 - Game.seedBurnTake);
+  Player.plantBalance++;
+  Game.seedsSold++;
+
 }
 
 async function main() {
