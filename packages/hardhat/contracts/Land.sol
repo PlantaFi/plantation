@@ -111,25 +111,37 @@ modifier hasFee() {
   function plantByLand(uint16 landTokenId) public view returns (uint256) {
     return landProps[landTokenId].plantTokenId;
   }
-  // Returns list of landTokenIds, isPlanted status, plantTokenIds if land isPlanted (o/w undefined), and burns count
-  function landInfoByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory, uint32[] memory) {
+  // Returns list of landTokenIds, isPlanted status, plantTokenIds if land isPlanted (o/w undefined)
+  function landOverviewByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory) {
     uint16 balance = uint16(balanceOf(addr));
     uint16[] memory landTokenIds = new uint16[](balance);
     bool[] memory isPlanteds = new bool[](balance);
     uint256[] memory plantTokenIds = new uint256[](balance);
-    uint32[] memory burns = new uint32[](balance);
     for (uint16 i; i < balance; i++) {
       landTokenIds[i] = uint16(tokenOfOwnerByIndex(addr, i));
       isPlanteds[i] = isPlanted(landTokenIds[i]);
       plantTokenIds[i] = plantByLand(landTokenIds[i]);
+    }
+    return (landTokenIds, isPlanteds, plantTokenIds);
+  }
+  // Returns list of landTokenIds, species, and burns count
+  function landDetailsByAddress(address addr) external view returns (uint16[] memory, uint8[] memory, uint32[] memory) {
+    uint16 balance = uint16(balanceOf(addr));
+    uint16[] memory landTokenIds = new uint16[](balance);
+    uint8[] memory species = new uint8[](balance);
+    uint32[] memory burns = new uint32[](balance);
+    for (uint16 i; i < balance; i++) {
+      landTokenIds[i] = uint16(tokenOfOwnerByIndex(addr, i));
+      species[i] = landProps[landTokenIds[i]].species;
       burns[i] = uint32(landProps[landTokenIds[i]].burns.current());
     }
-    return (landTokenIds, isPlanteds, plantTokenIds, burns);
+    return (landTokenIds, species, burns);
   }
-  // will return a square of the land +/- distance from given id in x/y coordinates
-  function landInfoByDistance(uint16 landTokenId, uint8 distance) external view returns (uint16[] memory, address[] memory, bool[] memory, bool[] memory, uint256[] memory, uint32[] memory) {
+  // Returns (landTokenIds, owners, isMinteds, isPlanteds, plantTokenIds) - split functions because stack limit
+  // The arrays represent a square of the land +/- distance from given id in x/y coordinates, from top/left.
+  function landOverviewByDistance(uint16 landTokenId, uint8 distance) external view returns (uint16[] memory, address[] memory, bool[] memory, bool[] memory, uint256[] memory) {
     uint16 length = distance + 1 + distance;
-    int16 _id = int16(landTokenId); // Prevents: CompilerError: Stack too deep, try removing local variables.
+    int16 _id = int16(landTokenId);
     int8 _dist = int8(distance);
     // Return land as a helper. Ids are predictable and sequential based on function args.
     uint16[] memory landTokenIds = new uint16[](length**2);
@@ -137,7 +149,6 @@ modifier hasFee() {
     bool[] memory isMinteds = new bool[](length**2);
     bool[] memory isPlanteds = new bool[](length**2);
     uint256[] memory plantTokenIds = new uint256[](length**2);
-    uint32[] memory burns = new uint32[](length**2);
     uint16 i = 0;
     for (int16 y = _id / 32 - _dist; y <= _id / 32 + _dist; y++) {
       for (int16 x = _id % 32 - _dist; x <= _id % 32 + _dist; x++) {
@@ -147,12 +158,35 @@ modifier hasFee() {
           owners[i] = isMinteds[i] ? ownerOf(landTokenIds[i]) : address(0);
           isPlanteds[i] = isPlanted(landTokenIds[i]);
           plantTokenIds[i] = plantByLand(landTokenIds[i]);
+        }
+        i++; // when distance is off map then array value is initial/undefined
+      }
+    }
+    return (landTokenIds, owners, isMinteds, isPlanteds, plantTokenIds);
+    
+  }
+  // Returns  (landTokenIds, species, burns)
+  // The arrays represent a square of the land +/- distance from given id in x/y coordinates, from top/left.
+  function landDetailsByDistance(uint16 landTokenId, uint8 distance) external view returns (uint16[] memory, uint8[] memory, uint32[] memory) {
+    uint16 length = distance + 1 + distance;
+    int16 _id = int16(landTokenId); // Prevents: CompilerError: Stack too deep, try removing local variables.
+    int8 _dist = int8(distance);
+    // Return land as a helper. Ids are predictable and sequential based on function args.
+    uint16[] memory landTokenIds = new uint16[](length**2);
+    uint8[] memory species = new uint8[](length**2);
+    uint32[] memory burns = new uint32[](length**2);
+    uint16 i = 0;
+    for (int16 y = _id / 32 - _dist; y <= _id / 32 + _dist; y++) {
+      for (int16 x = _id % 32 - _dist; x <= _id % 32 + _dist; x++) {
+        if (y >= 0 && y < 32 && x >= 0 && x < 32) {
+          landTokenIds[i] = uint16(y * 32 + x);
+          species[i] = landProps[landTokenIds[i]].species;
           burns[i] = uint32(landProps[landTokenIds[i]].burns.current());
         }
         i++; // when distance is off map then array value is initial/undefined
       }
     }
-    return (landTokenIds, owners, isMinteds, isPlanteds, plantTokenIds, burns);
+    return (landTokenIds, species, burns);
     
   }
 
