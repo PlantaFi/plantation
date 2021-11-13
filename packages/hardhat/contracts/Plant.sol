@@ -1,33 +1,33 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-// import { console } from "hardhat/console.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { Math as OPMath } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { VRFConsumerBase } from "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import { PRBMathSD59x18 as PRBI } from "prb-math/contracts/PRBMathSD59x18.sol";
 import { PRBMathUD60x18 as PRBU } from "prb-math/contracts/PRBMathUD60x18.sol";
 import { Math } from "./Math.sol";
-import { Unauthorized } from "./Shared.sol";
+import { Unauthorized, InsufficientLinkFunds } from "./Shared.sol";
 
-contract Plant is ERC721, ERC721Enumerable {
+contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
 
-    using Counters for Counters.Counter;
-
-    Counters.Counter private _tokenIdCounter;
+    uint256 private counter;
     // Every constant as wad
-    // FIXME: Should be immutable
-    uint256 GAME_TICK = PRBU.fromUint(1 hours);
-    uint256 WATER_MAX_ABSORB = PRBU.fromUint(500);
-    uint256 NORMAL_BRANCH_LINEAR_RATE = PRBU.fromUint(1); // base rate per hour
-    uint256 NORMAL_BRANCH_WET_WEAKEN_RATE = PRBU.div(PRBU.fromUint(5), PRBU.fromUint(100)); // 0.05
-    uint256 NORMAL_BRANCH_DRY_WEAKEN_RATE = PRBU.div(PRBU.fromUint(2), PRBU.fromUint(10)); // 0.2
-    uint256 WEAK_BRANCH_STRENGTHEN_RATE = PRBU.div(PRBU.fromUint(1), PRBU.fromUint(10)); // 0.1
-    uint256 WEAK_BRANCH_DEATH_RATE = PRBU.div(PRBU.fromUint(1), PRBU.fromUint(10)); // 0.1
-    uint256 NORMAL_BRANCH_PRUNE_RATE = PRBU.div(PRBU.fromUint(1), PRBU.fromUint(10)); // 0.1
-    uint256 WEAK_BRANCH_PRUNE_RATE = PRBU.div(PRBU.fromUint(4), PRBU.fromUint(10)); // 0.4
-    uint256 DEAD_BRANCH_PRUNE_RATE = PRBU.div(PRBU.fromUint(8), PRBU.fromUint(10)); // 0.8
+    uint256 immutable GAME_TICK = PRBU.fromUint(1 hours);
+    uint256 immutable WATER_MAX_ABSORB = PRBU.fromUint(500);
+    uint256 immutable ONE = PRBU.fromUint(1);
+    uint256 immutable NORMAL_BRANCH_LINEAR_RATE = PRBU.fromUint(1); // base rate per hour
+    uint256 immutable NORMAL_BRANCH_WET_WEAKEN_RATE = PRBU.div(PRBU.fromUint(5), PRBU.fromUint(100)); // 0.05
+    uint256 immutable NORMAL_BRANCH_DRY_WEAKEN_RATE = PRBU.div(PRBU.fromUint(2), PRBU.fromUint(10)); // 0.2
+    uint256 immutable WEAK_BRANCH_STRENGTHEN_RATE = PRBU.div(PRBU.fromUint(1), PRBU.fromUint(10)); // 0.1
+    uint256 immutable WEAK_BRANCH_DEATH_RATE = PRBU.div(PRBU.fromUint(1), PRBU.fromUint(10)); // 0.1
+    uint256 immutable NORMAL_BRANCH_PRUNE_RATE = PRBU.div(PRBU.fromUint(1), PRBU.fromUint(10)); // 0.1
+    uint256 immutable WEAK_BRANCH_PRUNE_RATE = PRBU.div(PRBU.fromUint(4), PRBU.fromUint(10)); // 0.4
+    uint256 immutable DEAD_BRANCH_PRUNE_RATE = PRBU.div(PRBU.fromUint(8), PRBU.fromUint(10)); // 0.8
+    // Chainlink properties
+    bytes32 immutable chainlinkKeyHash;
+    uint256 immutable chainlinkFee;
 
     struct PlantState {
         // Seed properties
@@ -60,21 +60,50 @@ contract Plant is ERC721, ERC721Enumerable {
 
     /// Plants state
     mapping (uint256 => PlantState) plantStates;
+    // Mapping from a chainlink's request to a plantId
+    mapping (bytes32 => uint256) requestIdToPlantId;
 
-    constructor() ERC721("Plant", "PLANT") {
-        buy();
+    /// The plant `plantId` is being created
+    event PlantCreationStarted(uint256 indexed plantId);
+
+    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
+        chainlinkKeyHash = _keyHash;
+        chainlinkFee = _fee;
     }
 
     /* --- Action functions --- */
 
     /// Buy a new plant
-    function buy() public {
-        uint256 plantId = _tokenIdCounter.current();
-        _safeMint(msg.sender, plantId);
-        _tokenIdCounter.increment();
-        // TEMP 11110110111101100101000110001100
-        plantStates[plantId].dna = 4143337868;
-        initializeState(plantStates[plantId]);
+    /*
+        Because of chainlink's (even more) asynchronous pattern to get a random number,
+        we need 2 functions to buy a new plant token: 
+            1) we make the user pay for it, we request a randomNumber and start initializing its state
+            2) the callback needs to mint and finish initializing its state
+    */
+    function buy() external {
+        // TODO: the user should pay for a new plant
+        // Request a random number 
+        requestRandomNumberFor(counter);
+        // Initialize every plant state properties that don't use directly or indirectly the dna
+        PlantState storage plant = plantStates[counter];
+        plant.lastNormalBranch = ONE;
+        plant.lastWaterUseRate = waterUseRate(ONE, plant.lastWeakBranch, plant.lastDeadBranch);
+        plant.lastWateredAt = block.timestamp;
+        plant.lastUpdatedAt = block.timestamp;
+        plant.landId = type(uint256).max;
+        emit PlantCreationStarted(counter);
+        counter++;
+    }
+
+    function buyCallback(uint256 plantId, uint32 dna) internal {
+        // Mint the token
+        _mint(msg.sender, plantId);
+        // Finish the plant state initialization with the dna
+        PlantState storage plant = plantStates[plantId];
+        plant.dna = dna;
+        uint256 absorbed = waterAbsorbed(traitFactor(Trait.ABSORB, dna), ONE);
+        plant.lastWaterLevel = absorbed;
+        plant.lastWaterTicks = PRBU.div(absorbed, plant.lastWaterUseRate);
     }
 
     /// Water a plant
@@ -137,7 +166,7 @@ contract Plant is ERC721, ERC721Enumerable {
     function state(uint256 _plantId) external view returns (PlantState memory) {
         return state(plantStates[_plantId]);
     }
-
+    
     function isPlanted(PlantState storage plant) internal view returns (bool) {
         return plant.landId != type(uint256).max;
     }
@@ -177,17 +206,6 @@ contract Plant is ERC721, ERC721Enumerable {
         plant.lastWaterLevel = p.lastWaterLevel;
         plant.lastWaterTicks = p.lastWaterTicks;
         plant.lastUpdatedAt = block.timestamp;
-    }
-
-    function initializeState(PlantState storage plant) internal {
-        // Only initialize non zero values
-        plant.lastNormalBranch = PRBU.fromUint(1); // FIXME: Should be a constant
-        plant.lastWaterLevel = waterAbsorbed(traitFactor(Trait.ABSORB, plant.dna), plant.lastNormalBranch);
-        plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
-        plant.lastWaterTicks = PRBU.div(plant.lastWaterLevel, plant.lastWaterUseRate);
-        plant.lastWateredAt = block.timestamp;
-        plant.lastUpdatedAt = block.timestamp;
-        plant.landId = type(uint256).max;
     }
 
     // as wad
@@ -260,11 +278,11 @@ contract Plant is ERC721, ERC721Enumerable {
     }
 
     // Params and return values as wad
-    function waterUseRate(uint256 lastNormalBranch, uint256 lastWeakBranch, uint256 lastDeadBranch) internal pure returns (uint256) {
+    function waterUseRate(uint256 lastNormalBranch, uint256 lastWeakBranch, uint256 lastDeadBranch) internal view returns (uint256) {
         // TODO should we cap useRate?
         // weak/dead will spend absorbed water
         uint256 lastTotalBranch = lastNormalBranch + lastWeakBranch + lastDeadBranch;
-        return PRBU.fromUint(1) + PRBU.floor(PRBU.sqrt(lastTotalBranch));
+        return ONE + PRBU.floor(PRBU.sqrt(lastTotalBranch));
     }
 
     // Params and return values as wad
@@ -292,7 +310,7 @@ contract Plant is ERC721, ERC721Enumerable {
     }
 
     // Calculate the plant's trait factor. Result in wad
-    function traitFactor(Trait trait, uint32 dna) internal pure returns (uint256) {
+    function traitFactor(Trait trait, uint32 dna) internal view returns (uint256) {
         uint8 traitOrder = uint8(trait);
         uint8 lastBitPosition;
         uint8 mask;
@@ -306,10 +324,29 @@ contract Plant is ERC721, ERC721Enumerable {
         uint32 shifted = dna >> lastBitPosition;
         uint8 traitValue = uint8(shifted & mask);
         // FIXME: Should use constants 
-        return PRBU.fromUint(1) + PRBU.mul(PRBU.fromUint(traitValue), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)));
+        return ONE + PRBU.mul(PRBU.fromUint(traitValue), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)));
     }
 
-   /* --- Other functions --- */
+    /* --- Chainlink functions --- */
+
+    function requestRandomNumberFor(uint256 plantId) internal {
+        // Check if the contract has enough LINK to pay the oracle
+        if (LINK.balanceOf(address(this)) < chainlinkFee) revert InsufficientLinkFunds();
+        bytes32 requestId = requestRandomness(chainlinkKeyHash, chainlinkFee);
+        requestIdToPlantId[requestId] = plantId;
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     * It should not revert and consume more than 200k gas
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        uint256 plantId = requestIdToPlantId[requestId];
+        uint32 dna = uint32(randomness);
+        buyCallback(plantId, dna);
+    }
+
+    /* --- Other functions --- */
 
     // The following functions are overrides required by Solidity.
 

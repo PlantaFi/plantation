@@ -1,6 +1,7 @@
 require("dotenv").config();
-const { utils } = require("ethers");
+const crypto = require("crypto");
 const fs = require("fs");
+const { utils } = require("ethers");
 const chalk = require("chalk");
 
 require("@nomiclabs/hardhat-waffle");
@@ -289,7 +290,7 @@ module.exports = {
         },
       },
       {
-        version: "0.6.7",
+        version: "0.6.6",
         settings: {
           optimizer: {
             enabled: true,
@@ -305,6 +306,9 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0, // here this will by default take the first account as deployer
+    },
+    oracle: {
+        default: 1,
     },
   },
 };
@@ -611,3 +615,27 @@ task("send", "Send ETH")
 
     return send(fromSigner, txRequest);
   });
+
+task("oracle", "Start an chainlink oracle mock")
+    .setAction(async (args, hre) => {
+        console.log("📢 Hardhat oracle task starting...");
+        const { oracle } = await hre.getNamedAccounts();
+        const coordinator = await hre.ethers.getContractOrNull("VRFCoordinatorMock", oracle);
+
+        if (!coordinator) {
+            console.error("🛑 You first need to deploy the VRFCoordinatorMock");
+        }
+
+        coordinator.on("RandomnessRequest", async (sender, requestId, event) => {
+            console.log(`️🗒️ RandomnessRequest:\n${sender}\n${requestId}`);
+            const random = hre.ethers.BigNumber.from(crypto.randomBytes(32));
+            try {
+                await coordinator.callBackWithRandomness(requestId, random, sender);
+            } catch (e) {
+                console.error("🛑 FulFillRandomness error", e);
+            }
+        });
+
+        // Never resolves
+        return new Promise(() => {});
+    });

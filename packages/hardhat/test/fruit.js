@@ -1,11 +1,11 @@
-const { deployments } = require("hardhat");
+const { deployments, ethers } = require("hardhat");
 const { use, expect } = require("chai");
 const { solidity } = require("ethereum-waffle");
 
 use(solidity);
 
 const setup = deployments.createFixture(async hre => {
-    await hre.deployments.fixture("Fruit");
+    await hre.deployments.fixture("fruit");
     const [user1, user2] = await hre.ethers.getUnnamedSigners();
     const plant = await hre.ethers.getContract("Plant", user1);
     return {
