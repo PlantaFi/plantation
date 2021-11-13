@@ -13,6 +13,6 @@ contract PlantMock is Plant {
 
     function doFulfillRandomness(uint256 plantId, uint256 random) external {
         uint32 dna = uint32(random);
-        buyCallback(plantId, dna);
+        buyCallback(msg.sender, plantId, dna);
     }
 }

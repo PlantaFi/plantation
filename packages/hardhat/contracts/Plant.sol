@@ -62,6 +62,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     mapping (uint256 => PlantState) plantStates;
     // Mapping from a chainlink's request to a plantId
     mapping (bytes32 => uint256) requestIdToPlantId;
+    // Mapping from a chainlink's request to the plant's owner
+    mapping (bytes32 => address) requestIdToAddress;
 
     /// The plant `plantId` is being created
     event PlantCreationStarted(uint256 indexed plantId);
@@ -95,9 +97,9 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         counter++;
     }
 
-    function buyCallback(uint256 plantId, uint32 dna) internal {
+    function buyCallback(address to, uint256 plantId, uint32 dna) internal {
         // Mint the token
-        _mint(msg.sender, plantId);
+        _mint(to, plantId);
         // Finish the plant state initialization with the dna
         PlantState storage plant = plantStates[plantId];
         plant.dna = dna;
@@ -334,6 +336,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         if (LINK.balanceOf(address(this)) < chainlinkFee) revert InsufficientLinkFunds();
         bytes32 requestId = requestRandomness(chainlinkKeyHash, chainlinkFee);
         requestIdToPlantId[requestId] = plantId;
+        requestIdToAddress[requestId] = msg.sender;
     }
 
     /**
@@ -341,9 +344,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
      * It should not revert and consume more than 200k gas
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        uint256 plantId = requestIdToPlantId[requestId];
         uint32 dna = uint32(randomness);
-        buyCallback(plantId, dna);
+        buyCallback(requestIdToAddress[requestId], requestIdToPlantId[requestId], dna);
     }
 
     /* --- Other functions --- */
