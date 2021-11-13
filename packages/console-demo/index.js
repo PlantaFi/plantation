@@ -31,6 +31,7 @@ const WaterCost = 0.5;
 const PruneCost = 0.1;
 
 let LandBurns = 10; // boosts longevity by 4%
+const LandSpecies = Math.floor(Math.random() * 8);
 
 /*
 bits
@@ -40,9 +41,9 @@ bits
 3: water efficiency (absorb 4% more water per unit)
 3: fertilizer efficiency (absorb 4% more fertilizer)
 3: fruit bonus (grows 4% more per)
-3: longevity (lives 6% longer per)
-3: weaken hardiness (3% less branches weaken)
-3: (branch) dying hardiness (3% less branches die)
+3: longevity (lives 4% longer per)
+3: weaken hardiness (4 less branches weaken)
+3: (branch) dying hardiness (4% less branches die)
 5: color/cosmetic
 = sums to 32
 */
@@ -54,9 +55,9 @@ function generateDNA() {
 function parseGenes(dnaStr) {
   const OFFSETS = { SPECIES: 0*3,
                     GROWTH : 1*3,
-                    MATURE : 2*3,
+                    MATURE : 2*3, // TODO how soon it starts fruiting
                     ABSORB : 3*3,
-                    FERTILE: 4*3,
+                    FERTILE: 4*3, // TODO affects potential fruit bounty
                     FRUIT  : 5*3,
                     LONG   : 6*3,
                     WEAK   : 7*3,
@@ -77,9 +78,12 @@ const Genes = parseGenes(generateDNA());
 
 const factor = (name) => 1 + Genes[name] * .04; // XXX assumes 4% effect per unit for each gene
 
+// Weaken absorption as land/plant "species" code diverges, but max out at 20% penalty
+const landSpeciesMatchFactor = () => 1 - .04 * max(5, Math.abs(factor('species') - LandSpecies));
+
 // absorbed amt related to healthy mass
 function _absorbed(norm, weak, dead) {
-    return Math.min(MAX_ABSORB, factor('absorb') * norm);
+    return Math.min(MAX_ABSORB, factor('absorb') * norm * landSpeciesMatchFactor());
 }
 function _useRate(norm, weak, dead) {
     // TODO should we cap useRate?
