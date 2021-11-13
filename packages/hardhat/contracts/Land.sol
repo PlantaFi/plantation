@@ -8,7 +8,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Land is ERC721, ERC721Enumerable, Ownable {
 
   using Counters for Counters.Counter;
-  mapping(uint16 => Counters.Counter) private _burns;
+  mapping(uint16 => uint8) private _species;
+  struct LandProp {
+    uint8 species;
+    Counters.Counter burns;
+    uint256 plantTokenId;
+  }
+  mapping(uint16 => LandProp) private landProps;
 
 uint fee = 0.0005 ether; // fee in Matic Token
   constructor() public ERC721("Land", "Land") {
@@ -17,7 +23,6 @@ uint fee = 0.0005 ether; // fee in Matic Token
 
   uint256[4] private _mapMinted = [0,0,0,0];// Example: [2**256 - 0xFFFF, 0xF0F, 255, 1023];
   uint256[4] private _mapPlanted = [0,0,0,0];//2**256 - 0x0f0f0f0f0f0f0f0f, 0xFFFF, 1024, 2**256-1];
-  mapping(uint16 => uint256) private _land2plant;
   mapping  (address => uint) public feeBalance;
 
 modifier hasFee() {
@@ -31,9 +36,16 @@ modifier hasFee() {
     require(!isMinted(landTokenId), "Land is already minted");
     _mint(to, landTokenId);
     setMinted(landTokenId);
+    landProps[landTokenId].species = _newSpecies();
     // _setTokenURI(id, tokenURI);
 
     return landTokenId;
+  }
+  // Returns 0-7 using entropy from blockhash but after ~85 (1/3 of 255) mints per block entropy will collide
+  function _newSpecies() public view returns (uint8) {
+    // Cycle through supply which increases per mint even w/in a block,
+    // get a number from 0 to 84 (84*3=252) and shift to get 3 lsb by masking 0b111
+    return uint8((uint256(blockhash(block.number - 1)) >> (uint16(3) * uint16(totalSupply()) % 85)) & uint8(0x7));
   }
 
   function changeFee (uint newFee ) public onlyOwner {
@@ -85,36 +97,37 @@ modifier hasFee() {
     require(!isPlanted(landTokenId), "Land is already occupied by Plant");
     // TODO are we allowed by the Plant to plant here?
     setPlanted(landTokenId);
-    _land2plant[landTokenId] = plantTokenId;
+    landProps[landTokenId].plantTokenId = plantTokenId;
     // TODO coordinate with Plant contract when implanting/unplanting
   }
   // Reverse of implant.
   function handleBurn(uint16 landTokenId) public {
-    // remove above mapping
     require(isPlanted(landTokenId), "Land had no Plant");
     clearPlanted(landTokenId);
-    delete(_land2plant[landTokenId]);
-    _burns[landTokenId].increment();
+    // NOTE: landProps.plantTokenId remains, it does not become 0 (a valid tokenId)
+    landProps[landTokenId].burns.increment();
   }
-  // Returns a plantTokenId but will return 0 if unplanted. Check isPlanted.
+  // Returns a plantTokenId but will is UNDEFINED if unplanted. Check isPlanted.
   function plantByLand(uint16 landTokenId) public view returns (uint256) {
-    return _land2plant[landTokenId];
+    return landProps[landTokenId].plantTokenId;
   }
-  // Returns list of landTokenIds, isPlanted status, and plantTokenIds if land isPlanted
-  function landInfoByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory) {
+  // Returns list of landTokenIds, isPlanted status, plantTokenIds if land isPlanted (o/w undefined), and burns count
+  function landInfoByAddress(address addr) external view returns (uint16[] memory, bool[] memory, uint256[] memory, uint32[] memory) {
     uint16 balance = uint16(balanceOf(addr));
     uint16[] memory landTokenIds = new uint16[](balance);
     bool[] memory isPlanteds = new bool[](balance);
     uint256[] memory plantTokenIds = new uint256[](balance);
+    uint32[] memory burns = new uint32[](balance);
     for (uint16 i; i < balance; i++) {
       landTokenIds[i] = uint16(tokenOfOwnerByIndex(addr, i));
       isPlanteds[i] = isPlanted(landTokenIds[i]);
       plantTokenIds[i] = plantByLand(landTokenIds[i]);
+      burns[i] = uint32(landProps[landTokenIds[i]].burns.current());
     }
-    return (landTokenIds, isPlanteds, plantTokenIds);
+    return (landTokenIds, isPlanteds, plantTokenIds, burns);
   }
   // will return a square of the land +/- distance from given id in x/y coordinates
-  function landInfoByDistance(uint16 landTokenId, uint8 distance) external view returns (uint16[] memory, address[] memory, bool[] memory, bool[] memory, uint256[] memory) {
+  function landInfoByDistance(uint16 landTokenId, uint8 distance) external view returns (uint16[] memory, address[] memory, bool[] memory, bool[] memory, uint256[] memory, uint32[] memory) {
     uint16 length = distance + 1 + distance;
     int16 _id = int16(landTokenId); // Prevents: CompilerError: Stack too deep, try removing local variables.
     int8 _dist = int8(distance);
@@ -124,6 +137,7 @@ modifier hasFee() {
     bool[] memory isMinteds = new bool[](length**2);
     bool[] memory isPlanteds = new bool[](length**2);
     uint256[] memory plantTokenIds = new uint256[](length**2);
+    uint32[] memory burns = new uint32[](length**2);
     uint16 i = 0;
     for (int16 y = _id / 32 - _dist; y <= _id / 32 + _dist; y++) {
       for (int16 x = _id % 32 - _dist; x <= _id % 32 + _dist; x++) {
@@ -133,11 +147,12 @@ modifier hasFee() {
           owners[i] = isMinteds[i] ? ownerOf(landTokenIds[i]) : address(0);
           isPlanteds[i] = isPlanted(landTokenIds[i]);
           plantTokenIds[i] = plantByLand(landTokenIds[i]);
+          burns[i] = uint32(landProps[landTokenIds[i]].burns.current());
         }
         i++; // when distance is off map then array value is initial/undefined
       }
     }
-    return (landTokenIds, owners, isMinteds, isPlanteds, plantTokenIds);
+    return (landTokenIds, owners, isMinteds, isPlanteds, plantTokenIds, burns);
     
   }
 
