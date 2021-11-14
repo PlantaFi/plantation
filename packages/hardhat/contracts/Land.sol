@@ -1,14 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Land is ERC721, ERC721Enumerable, Ownable {
 
   using Counters for Counters.Counter;
-  mapping(uint16 => uint8) private _species;
   struct LandProp {
     uint8 species;
     Counters.Counter burns;
@@ -42,7 +41,7 @@ modifier hasFee() {
     return landTokenId;
   }
   // Returns 0-7 using entropy from blockhash but after ~85 (1/3 of 255) mints per block entropy will collide
-  function _newSpecies() public view returns (uint8) {
+  function _newSpecies() private view returns (uint8) {
     // Cycle through supply which increases per mint even w/in a block,
     // get a number from 0 to 84 (84*3=252) and shift to get 3 lsb by masking 0b111
     return uint8((uint256(blockhash(block.number - 1)) >> (uint16(3) * uint16(totalSupply()) % 85)) & uint8(0x7));
@@ -54,35 +53,35 @@ modifier hasFee() {
 
   // 0b0000... 0001 <- most sig 32 bits of 256 is 1st row
   //   01010...0000 <- next 32 bits, 2nd row... 4 rows of 32 for _mapMinted[0]
-  function intIdx(uint16 landTokenId) public view returns (uint8) {
+  function _intIdx(uint16 landTokenId) private view returns (uint8) {
     require(landTokenId < 1024);
     return uint8(landTokenId / 256);
   }
-  function bitIdx(uint16 landTokenId) public view returns (uint8) {
+  function _bitIdx(uint16 landTokenId) private view returns (uint8) {
     require(landTokenId < 1024);
     return uint8(landTokenId % 256);
   }
   // Select 1 of 4 ints of 256 bits, mask single bit in relative position, shift to least sig position to compare
   function isMinted(uint16 landTokenId) public view returns (bool) {
-    return 1 == (_mapMinted[intIdx(landTokenId)] &
-                 (2**255 >> bitIdx(landTokenId))
-                ) >> (255 - bitIdx(landTokenId));
+    return 1 == (_mapMinted[_intIdx(landTokenId)] &
+                 (2**255 >> _bitIdx(landTokenId))
+                ) >> (255 - _bitIdx(landTokenId));
   }
   function isPlanted(uint16 landTokenId) public view returns (bool) {
-    return 1 == (_mapPlanted[intIdx(landTokenId)] &
-                 (2**255 >> bitIdx(landTokenId))
-                ) >> (255 - bitIdx(landTokenId));
+    return 1 == (_mapPlanted[_intIdx(landTokenId)] &
+                 (2**255 >> _bitIdx(landTokenId))
+                ) >> (255 - _bitIdx(landTokenId));
   }
   // TODO This should be only for internal, permissioned use
   // This makes the bit at position of id be 1. Unsetting to 0 needs another function.
   function setMinted(uint16 landTokenId) public {
-    _mapMinted[intIdx(landTokenId)] |= 2**255 >> bitIdx(landTokenId);
+    _mapMinted[_intIdx(landTokenId)] |= 2**255 >> _bitIdx(landTokenId);
   }
   function setPlanted(uint16 landTokenId) public {
-    _mapPlanted[intIdx(landTokenId)] |= 2**255 >> bitIdx(landTokenId);
+    _mapPlanted[_intIdx(landTokenId)] |= 2**255 >> _bitIdx(landTokenId);
   }
   function clearPlanted(uint16 landTokenId) public {
-    _mapPlanted[intIdx(landTokenId)] &= ~(uint16(1) << bitIdx(landTokenId));
+    _mapPlanted[_intIdx(landTokenId)] &= ~(uint16(1) << _bitIdx(landTokenId));
   }
 
   // returns 1024 bits in order of tokenId where 1 if land there is claimed/owned already
