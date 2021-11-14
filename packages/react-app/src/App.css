@@ -1,3 +1,17 @@
 .App {
   text-align: left;
 }
+@font-face {
+    font-family: "P0T-NOoDLE";
+    src: url("P0T-NOoDLE_v1.0.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "mOsOul";
+    src: url("mO'sOul_v1.0.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Super Mario World Text Box";
+    src: url("Super Mario World Text Box.ttf") format("truetype");
+}

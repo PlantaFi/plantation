@@ -38,6 +38,7 @@ const { Text, Title } = Typography;
 const { Meta } = Card;
 
 const centerStyle = {
+  fontFamily: "Super Mario World Text Box",
   position: "relative",
   display: "flex",
   justifyContent: "center",
@@ -397,7 +398,7 @@ function App(props) {
   title = (
     <div style={{ textAlign: "center" }}>
       <Title mark code>
-        plantation 1.0
+        <span style={{fontFamily: 'P0T-NOoDLE'}}>plantation 1.0</span>
       </Title>
     </div>
   );
@@ -646,6 +647,17 @@ function App(props) {
             />
             <Contract
               name="YourContract"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
+          <Route path="/fruit">
+            <Contract
+              name="Fruit"
               price={price}
               signer={userSigner}
               provider={localProvider}
