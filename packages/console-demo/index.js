@@ -5,15 +5,7 @@ const min = Math.min;
 
 let lineCount = 0;
 async function next() {
-    let item = await menu([
-        { hotkey: 'i', title: 'Idle (pass 1 hour)', cb: idle1hr, selected: true },
-        { hotkey: 'w', title: 'Water (cost 0.1)', cb: water },
-        { hotkey: 'p', title: 'Prune', cb: prune },
-        { hotkey: 'b', title: 'Burn (and replant)', cb: burn },
-        { hotkey: 'd', title: 'Debug', cb: debugSwitch },
-        { separator: true },
-        { hotkey: 'q', title: 'Quit', cb: process.exit },
-    ])
+    let item = await menu(hotkeys);
     if (item && item.cb) {
         item.cb();
         checkAlive();
@@ -24,14 +16,25 @@ async function next() {
 
 let DEBUG = false;
 const debugSwitch = () => DEBUG = !DEBUG;
-let Time = 0; // absolute internal timestamp in seconds
-let Balance = 10; // in MATIC
+const hotkeys = [
+        { hotkey: 'i', title: 'Idle (pass 1 hour)', cb: idle1hr, selected: true },
+        { hotkey: 'w', title: 'Water (cost 0.1)', cb: water },
+        { hotkey: 'p', title: 'Prune', cb: prune },
+        { hotkey: 'b', title: 'Burn (and replant)', cb: burn },
+        { hotkey: 'd', title: 'Debug', cb: debugSwitch },
+        { separator: true },
+        { hotkey: 'q', title: 'Quit', cb: process.exit },
+];
+const Ctx = {
+  time: 0, // absolute internal timestamp in seconds
+  balance: 10, // in MATIC
+  landBurns: 10, // boosts longevity by 4%
+  landSpecies: Math.floor(Math.random() * 8),
+}
 const GasCost = 0.005; // base gas for every tx
 const WaterCost = 0.5;
 const PruneCost = 0.1;
 
-let LandBurns = 10; // boosts longevity by 4%
-const LandSpecies = Math.floor(Math.random() * 8);
 
 /*
 bits
@@ -74,12 +77,13 @@ function parseGenes(dnaStr) {
 const MAX_ABSORB = 500;
 const FRAILTY_THRESH = 5000;
 
+// TODO move into Tree
 const Genes = parseGenes(generateDNA());
 
 const factor = (name) => 1 + Genes[name] * .04; // XXX assumes 4% effect per unit for each gene
 
 // Weaken absorption as land/plant "species" code diverges, but max out at 20% penalty
-const landSpeciesMatchFactor = () => 1 - .04 * max(5, Math.abs(factor('species') - LandSpecies));
+const landSpeciesMatchFactor = () => 1 - .04 * max(5, Math.abs(factor('species') - Ctx.landSpecies));
 
 // absorbed amt related to healthy mass
 function _absorbed(norm, weak, dead) {
@@ -98,8 +102,8 @@ function initTree() {
     Tree.weak = 0;
     Tree.dead = 0;
     Tree.deadPruned = 0;
-    Tree.h2oTil = Time;
-    Tree.h2oFrom = Time;
+    Tree.h2oTil = Ctx.time;
+    Tree.h2oFrom = Ctx.time;
     water();
 }
 
@@ -127,8 +131,8 @@ const deadBranchGrowth = (tbox, weak) => factor('die') * deathRate * anyTime(tbo
 function extrapolateBranches() {
   let [norm, weak, dead] = [Tree.norm, Tree.weak, Tree.dead];
   let tbox = {t0: Tree.h2oFrom, t1: null, h2oFrom: Tree.h2oFrom, h2oTil: Tree.h2oTil};
-  while (tbox.t0 < Time) {
-    tbox.t1 = min(Time, tbox.t0 + 3600);
+  while (tbox.t0 < Ctx.time) {
+    tbox.t1 = min(Ctx.time, tbox.t0 + 3600);
     if (DEBUG) { debug(tbox, norm, weak, dead); }
     let normDelta = normBranchGrowth(tbox, norm, weak, Tree.frailty);
     let weakDelta = weakBranchGrowth(tbox, norm, weak, Tree.frailty);
@@ -143,7 +147,7 @@ function extrapolateBranches() {
 
 const printGenes = () => console.log(Object.keys(Genes).map(k => `${k}: ${Genes[k]}`).join('\n'));
 const printHead = () => console.log('Time(H) ,MATIC    ,~br.norm   ,~br.weak   ,~br.dead   ,deadPruned  ,frailty  ,>=last sum  ,/ h2o.useRate,=h2o.hours'.split(',').join('\t'));
-const printTree = () => console.log([Time/3600, Balance, ...extrapolateBranches(), Tree.deadPruned, Tree.frailty, Tree.norm+Tree.weak+Tree.dead, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
+const printTree = () => console.log([Ctx.time/3600, Ctx.balance, ...extrapolateBranches(), Tree.deadPruned, Tree.frailty, Tree.norm+Tree.weak+Tree.dead, Tree.h2oUseRate, Tree.h2oTil/3600].map(x => x.toFixed(2)).join('\t\t'));
 
 function debug(tbox, norm, weak, dead) {
   const names = ['from', 'til', 't0', 't1', 'norm', 'weak', 'wetTime', 'dryTime', 'norm Grow', 'weak Grow', 'dead Grow'];
@@ -164,25 +168,25 @@ function checkAlive() {
 // no time passes
 function water() {
     updateBranches();
-    Balance -= (WaterCost + GasCost);
+    Ctx.balance -= (WaterCost + GasCost);
     // XXX LevelFrom not needed if we save Til
     const _h2oLevelFrom = _absorbed(Tree.norm, Tree.weak, Tree.dead);
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
-    Tree.h2oTil = Time + 3600 * _h2oLevelFrom/Tree.h2oUseRate;
-    Tree.h2oFrom = Time;
+    Tree.h2oTil = Ctx.time + 3600 * _h2oLevelFrom/Tree.h2oUseRate;
+    Tree.h2oFrom = Ctx.time;
 }
 function updateBranches() {
     // pre-calc before assign due to dependencies
     [Tree.norm, Tree.weak, Tree.dead] = extrapolateBranches();
     // growth depends on h2oFrom and h2oTil and branch counts. h2oTil remains but h2oFrom ...
-    Tree.h2oFrom = Time;
+    Tree.h2oFrom = Ctx.time;
     // Can't let From > Til
-    if (Time > Tree.h2oTil) {
-      Tree.h2oTil = Time;
+    if (Ctx.time > Tree.h2oTil) {
+      Tree.h2oTil = Ctx.time;
     }
 }
 function idle1hr() {
-    Time += 3600;
+    Ctx.time += 3600;
 }
 // prune efficiency - able to target most dead, many weak, accidently prune few normal
 const pruneDead = 0.8;
@@ -193,7 +197,7 @@ const pruneInfection = 0.05;
 // assume for now a constant "effort" of pruning which can be called multiple times
 function prune() {
     updateBranches();
-    Balance -= (PruneCost + GasCost);
+    Ctx.balance -= (PruneCost + GasCost);
     let targetAmount = 100;
     const deads = min(targetAmount, pruneDead * Tree.dead);
     const weaks = min(targetAmount - deads, pruneWeak * Tree.weak);
@@ -203,7 +207,7 @@ function prune() {
     Tree.weak -= weaks;
     Tree.dead -= deads;
     Tree.deadPruned += deads;
-    Tree.frailty = 1+(Tree.deadPruned/((1 + .04*LandBurns) * factor('long') * FRAILTY_THRESH))**3;
+    Tree.frailty = 1+(Tree.deadPruned/((1 + .04*Ctx.landBurns) * factor('long') * FRAILTY_THRESH))**3;
 
     // XXX update but not used until next watering - doesn't update level or h2oTil or From
     Tree.h2oUseRate = _useRate(Tree.norm, Tree.weak, Tree.dead);
@@ -215,7 +219,7 @@ function prune() {
 
 function burn() {
   if (Tree.deadPruned > 1000) {
-    LandBurns++;
+    Ctx.landBurns++;
   } else {
     console.log('Burned too early to get land bonus');
   }
@@ -235,11 +239,26 @@ async function main() {
         await next();
     }
 }
-main()
 
+if (require.main === module) {
+    main();
+} else {
+    console.log('required as a module');
+}
 
-
-
+module.exports = {
+  Tree,
+  Ctx,
+  initTree,
+  debug,
+  printHead,
+  printTree,
+  water,
+  prune,
+  idle1hr,
+  burn,
+  main
+}
 
 
 /*

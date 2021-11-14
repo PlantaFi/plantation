@@ -5,12 +5,17 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "demo": "node demo.js"
+    "demo": "node demo.js",
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chai": "^4.3.4",
     "console-menu": "^0.1.0",
     "ethers": "^5.5.1"
+  },
+  "devDependencies": {
+    "mocha": "^9.1.3"
   }
 }
