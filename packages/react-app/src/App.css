@@ -41,3 +41,20 @@
     -o-border-image: url(buchs-long-dark.png) 10 stretch;
     border-image: url(buchs-long-dark.png) 10 fill stretch;
 }
+.buchs-icon {
+    background-image: url(buchs-icons.png);
+    width: 32px;
+    height: 32px;
+}
+.buchs-icon-top {
+    background-position: 0 0;
+}
+.buchs-icon-right {
+    background-position: -32px 0;
+}
+.buchs-icon-left {
+    background-position: 0 -32px;
+}
+.buchs-icon-right {
+    background-position: -32px -32px;
+}

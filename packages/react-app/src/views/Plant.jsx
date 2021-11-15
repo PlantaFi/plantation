@@ -535,13 +535,11 @@ export default function Plant({
       <div
         className='buchs-square-light'
         style={{
-          border: "15px solid #b7612c",
-          borderRadius: "10px",
+          borderRadius: "12px",
           padding: 16,
           width: 400,
           margin: "auto",
           marginTop: 20,
-          backgroundColor: "#7f7f7f",
         }}
       >
         <div style={{ textAlign: "center" }}>
@@ -567,6 +565,10 @@ export default function Plant({
           </Row>
         </div>
       </div>
+      <div className='buchs-icon buchs-icon-top'> </div>
+      <div className='buchs-icon buchs-icon-bottom'> </div>
+      <div className='buchs-icon buchs-icon-left'> </div>
+      <div className='buchs-icon buchs-icon-right'> </div>
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
