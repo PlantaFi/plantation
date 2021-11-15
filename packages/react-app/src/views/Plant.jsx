@@ -532,10 +532,16 @@ export default function Plant({
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
+      <div className="nes-container with-title">
+        <p className="title">Menu</p>
+        <p><span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> | <span class="nes-text is-disabled">Help</span> </p>
+      </div>
+      <div className='buchs-icon buchs-icon-left' style={{float: 'left'}}> </div>
+      <div className='buchs-icon buchs-icon-right' style={{float: 'right'}}> </div>
       <div
-        className='buchs-square-light'
+        className='nes-container is-rounded'
         style={{
-          borderRadius: "12px",
+          backgroundColor: 'darkgray',
           padding: 16,
           width: 400,
           margin: "auto",
@@ -565,10 +571,6 @@ export default function Plant({
           </Row>
         </div>
       </div>
-      <div className='buchs-icon buchs-icon-top'> </div>
-      <div className='buchs-icon buchs-icon-bottom'> </div>
-      <div className='buchs-icon buchs-icon-left'> </div>
-      <div className='buchs-icon buchs-icon-right'> </div>
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
@@ -579,27 +581,34 @@ export default function Plant({
           width: 400,
           margin: "auto",
           marginTop: 64,
+          marginBottom: 128,
           backgroundColor: "#3f9822",
         }}
       >
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            WATER
+            <button type="button" style={{margin:10}} class="nes-btn is-success">Water</button>
           </Col>
+        </Row>
+        <Row>
           <Col xs={{ span: 11, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            BURN
+            <button type="button" style={{margin:10}} class="nes-btn is-error">Burn</button>
           </Col>
         </Row>
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            PRUNE
+            <button type="button" style={{margin:10}} class="nes-btn is-warning">Prune</button>
           </Col>
         </Row>
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            HARVEST
+            <button type="button" style={{margin:10}} class="nes-btn is-success">Harvest</button>
           </Col>
         </Row>
+      </div>
+      <div className="nes-container with-title">
+        <p className="title">Footer</p>
+        <p><span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> | <span class="nes-text is-disabled">Help</span> </p>
       </div>
     </div>
   );
