@@ -45,6 +45,7 @@ describe("Plant", () => {
                 ethers.constants.AddressZero,
                 ethers.constants.HashZero,
                 ethers.constants.Zero,
+                ethers.constants.AddressZero,
             );
         });
     });

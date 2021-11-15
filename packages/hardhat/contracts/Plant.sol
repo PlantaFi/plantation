@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import { console } from "hardhat/console.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import { Math as OPMath } from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -9,6 +10,7 @@ import { PRBMathSD59x18 as PRBI } from "prb-math/contracts/PRBMathSD59x18.sol";
 import { PRBMathUD60x18 as PRBU } from "prb-math/contracts/PRBMathUD60x18.sol";
 import { Math } from "./Math.sol";
 import { Unauthorized, InsufficientLinkFunds } from "./Shared.sol";
+import { Land } from "./Land.sol";
 
 contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
 
@@ -28,6 +30,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     // Chainlink properties
     bytes32 immutable chainlinkKeyHash;
     uint256 immutable chainlinkFee;
+    // Contracts
+    Land immutable land;
 
     struct PlantState {
         // Seed properties
@@ -68,9 +72,10 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     /// The plant `plantId` is being created
     event PlantCreationStarted(uint256 indexed plantId);
 
-    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
+    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, Land _land) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
         chainlinkKeyHash = _keyHash;
         chainlinkFee = _fee;
+        land = _land;
     }
 
     /* --- Action functions --- */
@@ -107,6 +112,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         plant.lastWaterLevel = absorbed;
         plant.lastWaterTicks = PRBU.div(absorbed, plant.lastWaterUseRate);
     }
+
+    /// Plant a plant into a land
 
     /// Water a plant
     function water(uint256 plantId) external {
@@ -165,12 +172,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     /* --- Plant state helper functions --- */
 
     /// Query a plant current state
-    function state(uint256 _plantId) external view returns (PlantState memory) {
-        return state(plantStates[_plantId]);
-    }
-    
-    function isPlanted(PlantState storage plant) internal view returns (bool) {
-        return plant.landId != type(uint256).max;
+    function state(uint256 plantId) external view returns (PlantState memory) {
+        return state(plantStates[plantId]);
     }
 
     function state(PlantState memory p) internal view returns (PlantState memory) {
@@ -198,6 +201,17 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
             p.lastWaterTicks = newWaterTicks;
         }
         return p;
+    }
+
+    /// Check and save a plant new land
+    function implant(uint16 landId, uint256 plantId, address sender) external {
+        PlantState storage plant = plantStates[plantId];
+        if (isPlanted(plant) || ownerOf(plantId) != sender || land.isMinted(landId) && land.plantByLand(landId) != plantId) revert Unauthorized();
+        plant.landId = landId;
+    }
+    
+    function isPlanted(PlantState storage plant) internal view returns (bool) {
+        return plant.landId != type(uint256).max;
     }
 
     function updateState(PlantState storage plant) internal {

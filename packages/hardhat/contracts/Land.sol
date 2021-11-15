@@ -4,10 +4,15 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Plant } from "./Plant.sol";
 
 contract Land is ERC721, ERC721Enumerable, Ownable {
 
   using Counters for Counters.Counter;
+
+    // Contracts
+    Plant plant;
+
   struct LandProp {
     uint8 species;
     Counters.Counter burns;
@@ -16,8 +21,7 @@ contract Land is ERC721, ERC721Enumerable, Ownable {
   mapping(uint16 => LandProp) private landProps;
 
 uint fee = 0.0005 ether; // fee in Matic Token
-  constructor() public ERC721("Land", "Land") {
-   // _setBaseURI("https://ipfs.io/ipfs/");
+  constructor() ERC721("Land", "Land") {
   }
 
   uint256[4] private _mapMinted = [0,0,0,0];// Example: [2**256 - 0xFFFF, 0xF0F, 255, 1023];
@@ -28,6 +32,10 @@ modifier hasFee() {
         require(msg.value >= fee ,"must pay fee");
         feeBalance[msg.sender]=msg.value;
         _;
+    }
+
+    function _initialize(Plant _plant) external onlyOwner {
+        plant = _plant;
     }
 
   function mintAt(address to, uint16 landTokenId) public payable  hasFee returns (uint16){
@@ -53,11 +61,11 @@ modifier hasFee() {
 
   // 0b0000... 0001 <- most sig 32 bits of 256 is 1st row
   //   01010...0000 <- next 32 bits, 2nd row... 4 rows of 32 for _mapMinted[0]
-  function _intIdx(uint16 landTokenId) private view returns (uint8) {
+  function _intIdx(uint16 landTokenId) private pure returns (uint8) {
     require(landTokenId < 1024);
     return uint8(landTokenId / 256);
   }
-  function _bitIdx(uint16 landTokenId) private view returns (uint8) {
+  function _bitIdx(uint16 landTokenId) private pure returns (uint8) {
     require(landTokenId < 1024);
     return uint8(landTokenId % 256);
   }
@@ -94,10 +102,10 @@ modifier hasFee() {
   }
   function implant(uint16 landTokenId, uint256 plantTokenId) public {
     require(!isPlanted(landTokenId), "Land is already occupied by Plant");
-    // TODO are we allowed by the Plant to plant here?
+    // plant.implant will revert if we cannot implant it
     setPlanted(landTokenId);
     landProps[landTokenId].plantTokenId = plantTokenId;
-    // TODO coordinate with Plant contract when implanting/unplanting
+    plant.implant(landTokenId, plantTokenId, msg.sender);
   }
   // Reverse of implant.
   function handleBurn(uint16 landTokenId) public {
