@@ -533,6 +533,7 @@ export default function Plant({
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
       <div
+        className='buchs-square-light'
         style={{
           border: "15px solid #b7612c",
           borderRadius: "10px",

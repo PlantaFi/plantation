@@ -398,7 +398,7 @@ function App(props) {
   title = (
     <div style={{ textAlign: "center" }}>
       <Title mark code>
-        <span style={{fontFamily: 'P0T-NOoDLE'}}>plantation 1.0</span>
+        <span className='buchs-long-dark' style={{fontFamily: 'P0T-NOoDLE', padding: 10}}>plantation 1.0</span>
       </Title>
     </div>
   );

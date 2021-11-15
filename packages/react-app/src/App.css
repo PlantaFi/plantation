@@ -15,3 +15,29 @@
     font-family: "Super Mario World Text Box";
     src: url("Super Mario World Text Box.ttf") format("truetype");
 }
+
+/* credit: http://opengameart.org/users/buch */
+.buchs-square-dark {
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url(buchs-square-dark.png) 10 stretch;
+    -webkit-border-image: url(buchs-square-dark.png) 10 stretch;
+    -o-border-image: url(buchs-square-dark.png) 10 stretch;
+    border-image: url(buchs-square-dark.png) 10 fill stretch;
+}
+.buchs-square-light {
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url(buchs-square-light.png) 10 stretch;
+    -webkit-border-image: url(buchs-square-light.png) 10 stretch;
+    -o-border-image: url(buchs-square-light.png) 10 stretch;
+    border-image: url(buchs-square-light.png) 10 fill stretch;
+}
+.buchs-long-dark {
+    border-style: solid;
+    border-width: 10px;
+    -moz-border-image: url(buchs-long-dark.png) 10 stretch;
+    -webkit-border-image: url(buchs-long-dark.png) 10 stretch;
+    -o-border-image: url(buchs-long-dark.png) 10 stretch;
+    border-image: url(buchs-long-dark.png) 10 fill stretch;
+}
