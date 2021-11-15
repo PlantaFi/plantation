@@ -12,11 +12,15 @@ const setup = deployments.createFixture(async hre => {
     const plant = await hre.ethers.getContract("PlantMock", user1);
     const link = await hre.ethers.getContract("ChainlinkMock");
     await link.transfer(plant.address, hre.ethers.utils.parseEther("10"));
+    const fruit = await hre.ethers.getContract("Fruit", user1);
+    await fruit.approve(plant.address, hre.ethers.constants.MaxUint256);
+    await fruit.freeFruit();
     return {
         hre,
         user1,
         user2,
         plant,
+        fruit,
     }
 });
 
@@ -46,6 +50,7 @@ describe("Plant", () => {
                 ethers.constants.HashZero,
                 ethers.constants.Zero,
                 ethers.constants.AddressZero,
+                ethers.constants.AddressZero,
             );
         });
     });
@@ -65,17 +70,37 @@ describe("Plant", () => {
     describe("buy", () => {
 
         it("should mint a plant token, increase the user's balance and emit the PlantCreated event", async () => {
-            const { user1, plant } = await setup();
+            const { user1, plant, fruit } = await setup();
             const supplyBefore = await plant.totalSupply();
             const balanceBefore = await plant.balanceOf(user1.address);
-            const tx = await plant.buy().then(tx => tx.wait());
-            const plantId = tx.events.find(e => e.event === "PlantCreationStarted").args["plantId"];
+            const fruitBalanceBefore = await fruit.balanceOf(user1.address);
+            const price = await plant.currentPrice();
+            const tx = await plant.buy();
+            const receipt = await tx.wait();
+            expect(await fruit.balanceOf(user1.address)).to.equal(fruitBalanceBefore.sub(price));
+            const plantId = receipt.events.find(e => e.event === "PlantCreationStarted").args["plantId"];
             const random = hre.ethers.BigNumber.from(crypto.randomBytes(32));
             await expect(plant.doFulfillRandomness(plantId, random, { gasLimit: 206000 + 22086 })).to.emit(plant, "Transfer").withArgs(hre.ethers.constants.AddressZero, user1.address, plantId);
             expect(await plant.totalSupply()).to.equal(supplyBefore.add(1));
             expect(await plant.balanceOf(user1.address)).to.equal(balanceBefore.add(1));
         });
     });
+
+    describe("currentPrice", () => {
+        
+        it("should return the correct price", async () => {
+            const { plant } = await setup();
+            for (let i = 0; i < 3; i++) {
+                await buy(plant);
+            }
+            const base = await plant.BASE_PRICE();
+            const step = await plant.PRICE_INCREASE();
+            const supply = await plant.totalSupply();
+            console.log(base.add(supply.mul(step)).toString(), (await plant.currentPrice()).toString());
+            expect(await plant.currentPrice()).to.equal(base.add(supply.mul(step)));
+        });
+    });
+
 
     describe("unplantedByAddress", () => {
 
@@ -91,18 +116,21 @@ describe("Plant", () => {
     describe("burn", () => {
 
         it("should only burn an owned plant", async () => {
-            const { user2, plant } = await setup();
+            const { hre, user2, plant, fruit } = await setup();
             const plantId = await buy(plant);
             const plantUser2 = plant.connect(user2);
+            const fruitUser2 = fruit.connect(user2)
+            await fruitUser2.freeFruit();
+            await fruitUser2.approve(plant.address, hre.ethers.constants.MaxUint256);
             await buy(plantUser2);
-            await expect(plantUser2.burn(plantId)).to.be.reverted;
+            await expect(plantUser2["burn(uint256)"](plantId)).to.be.reverted;
         });
 
         it("should burn an owned plant", async () => {
             const { hre, user1, plant } = await setup();
             const plantId = await buy(plant);
             const balance = await plant.balanceOf(user1.address);
-            await expect(plant.burn(plantId)).to.emit(plant, "Transfer").withArgs(user1.address, hre.ethers.constants.AddressZero, plantId);
+            await expect(plant["burn(uint256)"](plantId)).to.emit(plant, "Transfer").withArgs(user1.address, hre.ethers.constants.AddressZero, plantId);
             expect(await plant.balanceOf(user1.address)).to.equal(balance.sub(1));
         });
     });

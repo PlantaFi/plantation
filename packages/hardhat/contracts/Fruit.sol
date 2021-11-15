@@ -9,6 +9,6 @@ contract Fruit is ERC20, Ownable {
     constructor() ERC20("Fruit", "FRUIT") {}
 
     function freeFruit() public {
-        _mint(msg.sender, 10);
+        _mint(msg.sender, 10 ether);
     }
 }

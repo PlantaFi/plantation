@@ -4,12 +4,13 @@ pragma solidity ^0.8.4;
 import { console } from "hardhat/console.sol";
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import { ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Math as OPMath } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { VRFConsumerBase } from "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 import { PRBMathSD59x18 as PRBI } from "prb-math/contracts/PRBMathSD59x18.sol";
 import { PRBMathUD60x18 as PRBU } from "prb-math/contracts/PRBMathUD60x18.sol";
 import { Math } from "./Math.sol";
-import { Unauthorized, InsufficientLinkFunds } from "./Shared.sol";
+import { Unauthorized, InsufficientLinkFunds, FailedTransfer } from "./Shared.sol";
 import { Land } from "./Land.sol";
 
 contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
@@ -18,6 +19,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     // Every constant as wad
     uint256 immutable GAME_TICK = PRBU.fromUint(1 hours);
     uint256 immutable WATER_MAX_ABSORB = PRBU.fromUint(500);
+    uint256 constant public BASE_PRICE = 2 ether;
+    uint256 constant public PRICE_INCREASE = 0.1 ether;
     uint256 immutable ONE = PRBU.fromUint(1);
     uint256 immutable NORMAL_BRANCH_LINEAR_RATE = PRBU.fromUint(1); // base rate per hour
     uint256 immutable NORMAL_BRANCH_WET_WEAKEN_RATE = PRBU.div(PRBU.fromUint(5), PRBU.fromUint(100)); // 0.05
@@ -32,6 +35,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     uint256 immutable chainlinkFee;
     // Contracts
     Land immutable land;
+    IERC20 immutable fruit;
 
     struct PlantState {
         // Seed properties
@@ -72,10 +76,11 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     /// The plant `plantId` is being created
     event PlantCreationStarted(uint256 indexed plantId);
 
-    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, Land _land) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
+    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, address _land, address _fruit) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
         chainlinkKeyHash = _keyHash;
         chainlinkFee = _fee;
-        land = _land;
+        land = Land(_land);
+        fruit = IERC20(_fruit);
     }
 
     /* --- Action functions --- */
@@ -88,7 +93,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
             2) the callback needs to mint and finish initializing its state
     */
     function buy() external {
-        // TODO: the user should pay for a new plant
+        // Transfer the current price amount of fruit from the sender to this contract
+        if (!fruit.transferFrom(msg.sender, address(this), currentPrice())) revert FailedTransfer(address(fruit), msg.sender, address(this), currentPrice());
         // Request a random number 
         requestRandomNumberFor(counter);
         // Initialize every plant state properties that don't use directly or indirectly the dna
@@ -146,6 +152,11 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     }
 
     /* --- Game state helper functions --- */
+
+    /// Query the current price
+    function currentPrice() public view returns (uint256) {
+        return BASE_PRICE + PRBU.mul(PRBU.fromUint(counter), PRICE_INCREASE);
+    }
 
     /// Get an address's unplanted plants
     function unplantedByAddress(address addr) external view returns (uint256[] memory) {

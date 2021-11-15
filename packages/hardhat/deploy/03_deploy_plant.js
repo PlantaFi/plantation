@@ -3,6 +3,7 @@ module.exports = async hre => {
     const vrfCoordinator = await hre.ethers.getContract("VRFCoordinatorMock");
     const link = await hre.ethers.getContract("ChainlinkMock");
     const land = await hre.ethers.getContract("Land");
+    const fruit = await hre.ethers.getContract("Fruit");
 
     const network = await hre.ethers.provider.getNetwork();
     const chainId = network.chainId;
@@ -16,6 +17,7 @@ module.exports = async hre => {
                 "0xf86195cf7690c55907b2b611ebb7343a6f649bff128701cc542f0569e2c549da",
                 hre.ethers.utils.parseEther("0.0001"),
                 land.address,
+                fruit.address,
             ],
             log: true,
         });
@@ -28,6 +30,7 @@ module.exports = async hre => {
             "0xf86195cf7690c55907b2b611ebb7343a6f649bff128701cc542f0569e2c549da",
             hre.ethers.utils.parseEther("0.0001"),
             land.address,
+            fruit.address,
         ],
         log: true,
     });
@@ -38,4 +41,4 @@ module.exports = async hre => {
 };
 
 module.exports.tags = ["plant"];
-module.exports.dependencies = ["mocks", "land"];
+module.exports.dependencies = ["mocks", "fruit", "land"];
