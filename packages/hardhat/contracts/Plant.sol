@@ -59,7 +59,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         uint256 lastWaterTicks; // as wad
         uint256 lastWateredAt;
         uint256 lastUpdatedAt;
-        uint256 landId; // Its associated land
+        uint16 landId; // Its associated land
     }
 
     /// Plants state
@@ -97,7 +97,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         plant.lastWaterUseRate = waterUseRate(ONE, plant.lastWeakBranch, plant.lastDeadBranch);
         plant.lastWateredAt = block.timestamp;
         plant.lastUpdatedAt = block.timestamp;
-        plant.landId = type(uint256).max;
+        plant.landId = type(uint16).max;
         emit PlantCreationStarted(counter);
         counter++;
     }
@@ -142,10 +142,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
      * @dev See {ERC721-_burn}
      */
     function burn(uint256 plantId) external {
-        // Check if the token exists and if the sender owns the seed
-        if (ownerOf(plantId) != msg.sender) revert Unauthorized();
-        delete plantStates[plantId];
-        _burn(plantId);
+        burn(plantId, msg.sender);
     }
 
     /* --- Game state helper functions --- */
@@ -206,12 +203,32 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     /// Check and save a plant new land
     function implant(uint16 landId, uint256 plantId, address sender) external {
         PlantState storage plant = plantStates[plantId];
-        if (isPlanted(plant) || ownerOf(plantId) != sender || land.isMinted(landId) && land.plantByLand(landId) != plantId) revert Unauthorized();
+        if (
+            // Check if the token exists, if sender owns the plant
+            ownerOf(plantId) != sender ||
+            // Check if it is not already implanted
+            isPlanted(plant) || 
+            // If it is already assigned to this land
+            land.isPlanted(landId) && land.plantByLand(landId) != plantId
+        ) revert Unauthorized();
         plant.landId = landId;
+    }
+
+    function burn(uint256 plantId, address sender) public {
+        if (
+            // Check if the token exists, if sender owns the plant
+            ownerOf(plantId) != sender ||
+            // If it is not implanted, only the owner can burn it
+            !isPlanted(plantStates[plantId]) && msg.sender != sender ||
+            // If it is, its land must have been cleared
+            isPlanted(plantStates[plantId]) && land.isPlanted(plantStates[plantId].landId)
+        ) revert Unauthorized();
+        delete plantStates[plantId];
+        _burn(plantId);
     }
     
     function isPlanted(PlantState storage plant) internal view returns (bool) {
-        return plant.landId != type(uint256).max;
+        return plant.landId != type(uint16).max;
     }
 
     function updateState(PlantState storage plant) internal {

@@ -110,9 +110,11 @@ modifier hasFee() {
   // Reverse of implant.
   function handleBurn(uint16 landTokenId) public {
     require(isPlanted(landTokenId), "Land had no Plant");
+    uint256 plantTokenId = landProps[landTokenId].plantTokenId;
     clearPlanted(landTokenId);
-    // NOTE: landProps.plantTokenId remains, it does not become 0 (a valid tokenId)
     landProps[landTokenId].burns.increment();
+    // plant.burn will revert if we cannot burn it
+    plant.burn(plantTokenId, msg.sender);
   }
   // Returns a plantTokenId but will is UNDEFINED if unplanted. Check isPlanted.
   function plantByLand(uint16 landTokenId) public view returns (uint256) {
