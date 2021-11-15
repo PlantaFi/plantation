@@ -61,4 +61,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     });
   }
 };
-module.exports.tags = ["Land"];
+module.exports.tags = ["land"];
