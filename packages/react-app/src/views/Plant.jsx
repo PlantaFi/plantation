@@ -573,9 +573,8 @@ export default function Plant({
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
       <div
+        className='nes-container is-rounded'
         style={{
-          border: "10px solid #000000",
-          borderRadius: "10px",
           padding: 16,
           width: 400,
           margin: "auto",

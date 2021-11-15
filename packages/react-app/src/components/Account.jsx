@@ -67,8 +67,9 @@ export default function Account({
       );
     } else {
       modalButtons.push(
-        <Button
+        <button type='button'
           key="loginbutton"
+          className='nes-btn is-warning'
           style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4 }}
           shape="round"
           size="large"
@@ -76,7 +77,7 @@ export default function Account({
           onClick={loadWeb3Modal}
         >
           connect
-        </Button>,
+        </button>,
       );
     }
   }
