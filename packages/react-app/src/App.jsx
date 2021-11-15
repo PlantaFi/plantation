@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
+import "./nes.css";
 import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
@@ -397,8 +398,8 @@ function App(props) {
   let title = "";
   title = (
     <div style={{ textAlign: "center" }}>
-      <Title mark code>
-        <span className='buchs-long-dark' style={{fontFamily: 'P0T-NOoDLE', padding: 10}}>plantation 1.0</span>
+      <Title mark >
+        <span className='buchs-long-dark' style={{fontFamily: 'P0T-NOoDLE', padding: 12}}>plantation 1.0</span>
       </Title>
     </div>
   );
