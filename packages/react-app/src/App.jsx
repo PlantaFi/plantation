@@ -398,8 +398,10 @@ function App(props) {
   let title = "";
   title = (
     <div style={{ textAlign: "center" }}>
-      <Title mark >
-        <span className='buchs-long-dark' style={{fontFamily: 'P0T-NOoDLE', padding: 12}}>plantation 1.0</span>
+      <Title mark>
+        <span className="buchs-long-dark" style={{ fontFamily: "P0T-NOoDLE", padding: 12 }}>
+          plantation 1.0
+        </span>
       </Title>
     </div>
   );
@@ -473,67 +475,33 @@ function App(props) {
       {networkDisplay}
       {title}
       <BrowserRouter>
-        <Menu style={centerStyle} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/" icon={<HomeOutlined />}>
-            <Link
-              onClick={() => {
-                setRoute("/");
-              }}
-              to="/"
-            />
-          </Menu.Item>
-          <Menu.Item key="/banks">
-            <Link
-              onClick={() => {
-                setRoute("/banks");
-              }}
-              to="/banks"
-            >
-              Banks
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/map">
-            <Link
-              onClick={() => {
-                setRoute("/map");
-              }}
-              to="/map"
-            >
-              Map
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/shop">
-            <Link
-              onClick={() => {
-                setRoute("/shop");
-              }}
-              to="/shop"
-            >
-              Shop
-            </Link>
-          </Menu.Item>
-          <Menu.Item key="/land">
-            <Link
-              onClick={() => {
-                setRoute("/land");
-              }}
-              to="/land"
-            >
-              Land
-            </Link>
-          </Menu.Item>
-
-          <Menu.Item key="/mainnetdai">
-            <Link
-              onClick={() => {
-                setRoute("/mainnetdai");
-              }}
-              to="/mainnetdai"
-            >
-              mainnetdai
-            </Link>
-          </Menu.Item>
-        </Menu>
+        <div className="nes-container with-title">
+          <p className="title">Menu</p>
+          <p>
+            <span className="nes-text is-success">
+              <Link to="/"> Plant </Link>
+            </span>
+            |
+            <span className="nes-text is-success">
+              <Link to="/banks"> Bank &amp; Shop </Link>
+            </span>
+            |
+            <span class="nes-text is-primary">
+              <Link
+                onClick={() => {
+                  setRoute("/");
+                }}
+                to="/map"
+              >
+                {" "}
+                Map{" "}
+              </Link>
+            </span>
+            |<span class="nes-text is-disabled"> Help</span>
+          </p>
+        </div>
+        <div className="buchs-icon buchs-icon-left" style={{ float: "left" }}></div>
+        <div className="buchs-icon buchs-icon-right" style={{ float: "right" }}></div>
 
         <Switch>
           <Route exact path="/">
@@ -544,19 +512,19 @@ function App(props) {
             */}
 
             <Plant
-               address={address}
-               userSigner={userSigner}
-               mainnetProvider={mainnetProvider}
-               localProvider={localProvider}
-               yourLocalBalance={yourLocalBalance}
-               price={price}
-               tx={tx}
-               writeContracts={writeContracts}
-               readContracts={readContracts}
-               purpose={purpose}
-               setPurposeEvents={setPurposeEvents}
-             />
-           </Route>
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              purpose={purpose}
+              setPurposeEvents={setPurposeEvents}
+            />
+          </Route>
 
           <Route path="/shop">
             <Shop
@@ -590,11 +558,7 @@ function App(props) {
           </Route>
 
           <Route path="/map">
-            <Map address={address}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-          />
+            <Map address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
           </Route>
           <Route path="/hints">
             <Hints
