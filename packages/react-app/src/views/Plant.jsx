@@ -19,7 +19,6 @@ import {
 import React, { useState } from "react";
 import { Address, Balance } from "../components";
 
-// const fruitTreePng = require('../lpc-fruit-trees/fruit-trees.png');
 import fruitTreePng from "../lpc-fruit-trees/fruit-trees.png";
 import iconWater from "../foundicons/water.png";
 import iconFire from "../foundicons/fire.png";
@@ -320,8 +319,6 @@ function TreeCardInner({ seedId, address, mainnetProvider, localProvider, tx, re
   );
 }
 
-
-
 const SpeciesBabyImgOffsets = {
   // [x * 96, y * 128]
   Lingo: [0, 3],
@@ -482,9 +479,7 @@ For each Seed, show:
         <Divider />
 
         {/* use utils.formatEther to display a BigNumber: */}
-        <Collapse>
-
-        </Collapse>
+        <Collapse></Collapse>
         <Divider />
         <Card>
           <h1>Your Trees</h1>
@@ -509,24 +504,21 @@ For each Seed, show:
   );
 }
 
-export default function Plant({
-  purpose,
-  setPurposeEvents,
-  address,
-  mainnetProvider,
-  localProvider,
-  yourLocalBalance,
-  price,
-  tx,
-  readContracts,
-  writeContracts,
-}) {
+export default function Plant({ address, plantId, readContracts, writeContracts }) {
+  const [loadingunplanted, setLoadingunplanted] = useState(true);
+
   const { Meta } = Card;
 
   const species = 4;
   const treeState = 4;
   const fruitCount = 3;
 
+  // const unplantedseeds = useContractReader(readContracts, "Plant", "unplantedByAddress", [address]);
+  //
+  // console.log(" unplantedseeds " + unplantedseeds);
+  //
+  // const unplantedseeds = useContractReader(readContracts, "Plant", "unplantedByAddress", [address]);
+  // <h4>{unplantedseeds ? unplantedseeds.toString() : "loading..."} </h4>
   return (
     <div>
       {/*
@@ -534,14 +526,21 @@ export default function Plant({
     */}
       <div className="nes-container with-title">
         <p className="title">Menu</p>
-        <p><span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> | <span class="nes-text is-disabled">Help</span> </p>
+        <p>
+          <span className="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> |{" "}
+          <span class="nes-text is-disabled">Help</span>{" "}
+        </p>
       </div>
-      <div className='buchs-icon buchs-icon-left' style={{float: 'left'}}> </div>
-      <div className='buchs-icon buchs-icon-right' style={{float: 'right'}}> </div>
+      <div className="buchs-icon buchs-icon-left" style={{ float: "left" }}>
+        {" "}
+      </div>
+      <div className="buchs-icon buchs-icon-right" style={{ float: "right" }}>
+        {" "}
+      </div>
       <div
-        className='nes-container is-rounded'
+        className="nes-container is-rounded"
         style={{
-          backgroundColor: 'darkgray',
+          backgroundColor: "darkgray",
           padding: 16,
           width: 400,
           margin: "auto",
@@ -549,7 +548,7 @@ export default function Plant({
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <h2>Owner: </h2>
+          <h2>Owner: {address}</h2>
 
           <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
             <Space align="center">
@@ -575,7 +574,7 @@ export default function Plant({
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
       <div
-        className='nes-container is-rounded'
+        className="nes-container is-rounded"
         style={{
           padding: 16,
           width: 400,
@@ -587,31 +586,55 @@ export default function Plant({
       >
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            <button type="button" style={{margin:10}} class="nes-btn is-success">Water</button>
+            <button type="button" style={{ margin: 10 }} class="nes-btn is-success">
+              Water
+            </button>
           </Col>
         </Row>
         <Row>
           <Col xs={{ span: 11, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            <button type="button" style={{margin:10}} class="nes-btn is-error">Burn</button>
+            <button type="button" style={{ margin: 10 }} class="nes-btn is-error">
+              Burn
+            </button>
           </Col>
         </Row>
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            <button type="button" style={{margin:10}} class="nes-btn is-warning">Prune</button>
+            <button type="button" style={{ margin: 10 }} class="nes-btn is-warning">
+              Prune
+            </button>
           </Col>
         </Row>
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            <button type="button" style={{margin:10}} class="nes-btn is-success">Harvest</button>
+            <button type="button" style={{ margin: 10 }} class="nes-btn is-success">
+              Harvest
+            </button>
           </Col>
         </Row>
       </div>
       <div className="nes-container with-title">
         <p className="title">Footer</p>
-        <p><span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> | <span class="nes-text is-disabled">Help</span> </p>
+        <p>
+          <span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> |{" "}
+          <span class="nes-text is-disabled">Help</span>{" "}
+        </p>
       </div>
     </div>
   );
 }
+
+//  // <Spin spinning={false} size="large" tip="Loading Plants...">
+//   <div
+//     style={{
+//       border: "15px solid #b7612c",
+//       borderRadius: "10px",
+//       padding: 16,
+//       width: 400,
+//       margin: "auto",
+//       marginTop: 20,
+//       backgroundColor: "#7f7f7f",
+//     }}
+//   >
 
 // background: "#dd833b", border: "5px solid #e58f43" , borderRadius: '10px',

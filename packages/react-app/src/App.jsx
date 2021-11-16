@@ -544,19 +544,19 @@ function App(props) {
             */}
 
             <Plant
-              address={address}
-              userSigner={userSigner}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-              purpose={purpose}
-              setPurposeEvents={setPurposeEvents}
-            />
-          </Route>
+               address={address}
+               userSigner={userSigner}
+               mainnetProvider={mainnetProvider}
+               localProvider={localProvider}
+               yourLocalBalance={yourLocalBalance}
+               price={price}
+               tx={tx}
+               writeContracts={writeContracts}
+               readContracts={readContracts}
+               purpose={purpose}
+               setPurposeEvents={setPurposeEvents}
+             />
+           </Route>
 
           <Route path="/shop">
             <Shop
@@ -591,16 +591,10 @@ function App(props) {
 
           <Route path="/map">
             <Map address={address}
-            userSigner={userSigner}
-            mainnetProvider={mainnetProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
             tx={tx}
             writeContracts={writeContracts}
             readContracts={readContracts}
-            purpose={purpose}
-            setPurposeEvents={setPurposeEvents} />
+          />
           </Route>
           <Route path="/hints">
             <Hints

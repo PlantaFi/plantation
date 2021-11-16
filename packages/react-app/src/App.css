@@ -3,22 +3,22 @@
 }
 @font-face {
     font-family: "P0T-NOoDLE";
-    src: url("P0T-NOoDLE_v1.0.ttf") format("truetype");
+    src: url("fonts/P0T-NOoDLE_v1.0.ttf") format("truetype");
 }
 
 @font-face {
     font-family: "mOsOul";
-    src: url("mO'sOul_v1.0.ttf") format("truetype");
+    src: url("fonts/mO'sOul_v1.0.ttf") format("truetype");
 }
 
 @font-face {
     font-family: "Super Mario World Text Box";
-    src: url("Super Mario World Text Box.ttf") format("truetype");
+    src: url("fonts/Super Mario World Text Box.ttf") format("truetype");
 }
 
 @font-face {
     font-family: "PressStart2P";
-    src: url("PressStart2P-Regular.ttf") format("truetype");
+    src: url("fonts/PressStart2P-Regular.ttf") format("truetype");
 }
 
 .App, body {
@@ -29,10 +29,10 @@
 .buchs-square-dark {
     border-style: solid;
     border-width: 10px;
-    -moz-border-image: url(buchs-square-dark.png) 10 stretch;
-    -webkit-border-image: url(buchs-square-dark.png) 10 stretch;
-    -o-border-image: url(buchs-square-dark.png) 10 stretch;
-    border-image: url(buchs-square-dark.png) 10 fill stretch;
+    -moz-border-image: url(assets/buchs-square-dark.png) 10 stretch;
+    -webkit-border-image: url(assets/buchs-square-dark.png) 10 stretch;
+    -o-border-image: url(assets/buchs-square-dark.png) 10 stretch;
+    border-image: url(assets/buchs-square-dark.png) 10 fill stretch;
 }
 .buchs-square-light {
     border-style: solid;
@@ -40,21 +40,21 @@
     border-width: 10px;
     border-width: 0;
     */
-    -moz-border-image: url(buchs-square-light.png) 10 stretch;
-    -webkit-border-image: url(buchs-square-light.png) 10 stretch;
-    -o-border-image: url(buchs-square-light.png) 10 stretch;
-    border-image: url(buchs-square-light.png) 10 fill stretch;
+    -moz-border-image: url(assets/buchs-square-light.png) 10 stretch;
+    -webkit-border-image: url(assets/buchs-square-light.png) 10 stretch;
+    -o-border-image: url(assets/buchs-square-light.png) 10 stretch;
+    border-image: url(assets/buchs-square-light.png) 10 fill stretch;
 }
 .buchs-long-dark {
     border-style: solid;
     border-width: 10px;
-    -moz-border-image: url(buchs-long-dark.png) 10 stretch;
-    -webkit-border-image: url(buchs-long-dark.png) 10 stretch;
-    -o-border-image: url(buchs-long-dark.png) 10 stretch;
-    border-image: url(buchs-long-dark.png) 10 fill stretch;
+    -moz-border-image: url(assets/buchs-long-dark.png) 10 stretch;
+    -webkit-border-image: url(assets/buchs-long-dark.png) 10 stretch;
+    -o-border-image: url(assets/buchs-long-dark.png) 10 stretch;
+    border-image: url(assets/buchs-long-dark.png) 10 fill stretch;
 }
 .buchs-icon {
-    background-image: url(buchs-icons.png);
+    background-image: url(assets/buchs-icons.png);
     width: 32px;
     height: 32px;
 }
