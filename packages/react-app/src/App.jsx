@@ -486,7 +486,7 @@ function App(props) {
               <Link to="/banks"> Bank &amp; Shop </Link>
             </span>
             |
-            <span class="nes-text is-primary">
+            <span className="nes-text is-primary">
               <Link
                 onClick={() => {
                   setRoute("/");
@@ -497,7 +497,7 @@ function App(props) {
                 Map{" "}
               </Link>
             </span>
-            |<span class="nes-text is-disabled"> Help</span>
+            |<span className="nes-text is-disabled"> Help</span>
           </p>
         </div>
         <div className="buchs-icon buchs-icon-left" style={{ float: "left" }}></div>
@@ -617,6 +617,28 @@ function App(props) {
           <Route path="/fruit">
             <Contract
               name="Fruit"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
+          <Route path="/fmatic">
+            <Contract
+              name="FMatic"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
+          <Route path="/pair">
+            <Contract
+              name="UniswapV2Pair"
               price={price}
               signer={userSigner}
               provider={localProvider}
