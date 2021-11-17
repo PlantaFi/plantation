@@ -17,7 +17,18 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   });
 
   // Getting a previously deployed contract
-  const Land = await ethers.getContract("UniswapV2Pair", deployer);
+  const Pair = await ethers.getContract("UniswapV2Pair", deployer);
+
+  const Fruit = await ethers.getContract("Fruit", deployer);
+  const FMatic = await ethers.getContract("FMatic", deployer);
+  await Pair.initialize(Fruit.address, FMatic.address);
+  await Fruit.freeFruit();
+  await FMatic.freeFMatic();
+  await Fruit.transfer(Pair.address, ethers.utils.parseEther("10"));
+  await FMatic.transfer(Pair.address, ethers.utils.parseEther("10"));
+  await Pair.sync();
+  
+
   /*  await YourContract.setPurpose("Hello");
   
     To take ownership of yourContract using the ownable library uncomment next line and add the 
@@ -62,3 +73,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   }
 };
 module.exports.tags = ["pair"];
+module.exports.dependencies = ["fmatic", "fruit"];
