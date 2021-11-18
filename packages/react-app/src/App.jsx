@@ -23,7 +23,7 @@ import {
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 // import Hints from "./Hints";
-import { ExampleUI, Hints, Subgraph, Banks, Shop, Plant, Map } from "./views";
+import { ExampleUI, PairSwap, Hints, Subgraph, Banks, Shop, Plant, Map } from "./views";
 
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
@@ -583,6 +583,20 @@ function App(props) {
               setPurposeEvents={setPurposeEvents}
             />
           </Route>
+          <Route path="/pairswap">
+           {writeContracts.Fruniswap ?
+            <PairSwap
+              address={address}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+            /> : ''}
+          </Route>
           <Route path="/land">
             <Contract
               name="Land"
@@ -628,6 +642,17 @@ function App(props) {
           <Route path="/fmatic">
             <Contract
               name="FMatic"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
+          <Route path="/fruniswap">
+            <Contract
+              name="Fruniswap"
               price={price}
               signer={userSigner}
               provider={localProvider}
