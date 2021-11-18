@@ -30,8 +30,12 @@ contract Fruniswap {
     (uint112 r0, uint112 r1, ) = v2pair.getReserves();
     return UniswapV2Library.getAmountOut(amountIn, r0, r1);
   }
+  function getAmountInForFruitOut(uint amountOut) public view returns (uint amountIn) {
+    (uint112 r0, uint112 r1, ) = v2pair.getReserves();
+    return UniswapV2Library.getAmountIn(amountOut, r0, r1);
+  }
 
-  function swap(uint fruitIn) public returns (uint) {
+  function sellFruit(uint fruitIn) public returns (uint) {
     token0.transferFrom(msg.sender, address(v2pair), fruitIn);
     // swap(uint amount0Out, uint amount1Out, address to, bytes calldata data);
     uint fmaticOut = getAmountOutForFruitIn(fruitIn);
@@ -40,6 +44,15 @@ contract Fruniswap {
     token1.transfer(msg.sender, fmaticOut);
 
     return fmaticOut;
+  }
+  function buyFruit(uint fruitOut) public returns (uint) {
+    uint fmaticIn = getAmountInForFruitOut(fruitOut);
+    token1.transferFrom(msg.sender, address(v2pair), fmaticIn);
+    v2pair.swap(fruitOut, 0, address(this), "");
+    // receive less 0.3% fee
+    token0.transfer(msg.sender, fruitOut);
+
+    return fmaticIn;
   }
   /*
   function sortTokens() public view returns (address, address) {
