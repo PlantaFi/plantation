@@ -66,7 +66,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // You don't want to verify on localhost
   if (chainId !== localChainId) {
     await run("verify:verify", {
-      address: Land.address,
+      address: Pair.address,
       contract: "contracts/UniswapV2Pair.sol:UniswapV2Pair",
       contractArguments: [],
     });
