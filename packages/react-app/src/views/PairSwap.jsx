@@ -29,6 +29,10 @@ function _onUpdate(update) {
   }
 }
 
+function FMaticOut({ fruitIn, readContracts, }) {
+  const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(fruitIn)]);
+  return (<span>{fmaticOut ? fmtEth(fmaticOut) : '...'}</span>);
+}
 export default function PairSwap({
   address,
   mainnetProvider,
@@ -39,11 +43,13 @@ export default function PairSwap({
   readContracts,
   writeContracts,
 }) {
-  console.log(readContracts);
-  const [newFruitAmount, setNewFruitAmount] = useState("loading...");
+  const [newFruitAmount, setNewFruitAmount] = useState("1");
+  const [newFMaticAmount, setNewFMaticAount] = useState(parseEth("0"));
   const reserves = useContractReader(readContracts, "UniswapV2Pair", "getReserves");
-  const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutFor1FruitIn");
+  const fruitBal = useContractReader(readContracts, "Fruit", "balanceOf", [address]);
+  const fmaticBal = useContractReader(readContracts, "FMatic", "balanceOf", [address]);
   const fruniswapFruitAllow = useContractReader(readContracts, "Fruit", "allowance", [address, writeContracts.Fruniswap.address]);
+  const fruniswapFMaticAllow = useContractReader(readContracts, "FMatic", "allowance", [address, writeContracts.Fruniswap.address]);
 
 
   return (
@@ -56,27 +62,35 @@ export default function PairSwap({
           <div>
             <h2>Reserves</h2>
             {reserves ? `FRUIT: ${utils.formatEther(reserves[0])} / FMATIC: ${utils.formatEther(reserves[1])}` : '...'}
-            {/*
-            <h2>x*y=k</h2>
-            <code>
-            (x+1)(y-n)=x*y
-                  y-n =x*y/(x+1)
-                   -n =x*y/(x+1) - y
-                    n = y - x*y/(x+1)
-            </code> */}
-    <div>
+            <Divider />
+            <h2>Your Balances</h2>
+            <div>FRUIT: {fruitBal ? fmtEth(fruitBal) : '...'}</div>
+            <div>FMATIC: {fmaticBal ? fmtEth(fmaticBal) : '...'}</div>
+            <Divider />
+            <h2>FRUNISWAP</h2>
+    {/*    <div>
             1 FRUIT gets {reserves ? utils.formatEther( reserves[1].sub(reserves[0].mul(reserves[1]).div(reserves[0].add(utils.parseEther("1")))) ) : ''} FMATIC
-    </div>
-    <div>
-            1 FRUIT gets {fmaticOut ? fmtEth(fmaticOut) : ''} FMATIC
-    </div>
+    </div> */}
+            <div>
+              {newFruitAmount} FRUIT gets <FMaticOut fruitIn={newFruitAmount} readContracts={readContracts} /> FMATIC
+            </div>
           </div>
           <Input
-            onChange={e => {
-              setNewFruitAmount(e.target.value);
+            value={newFruitAmount}
+            onChange={async(e) => {
+              try {
+                parseEth(e.target.value);
+                setNewFruitAmount(e.target.value);
+
+                setNewFMaticAount(await readContracts.Fruniswap.getAmountInForFruitOut(parseEth(e.target.value)));
+                console.log(x);
+              } catch(err) {
+              }
             }}
           />
-    <div>check {fruniswapFruitAllow ? fmtEth(fruniswapFruitAllow) : '...'} &gt;= {newFruitAmount} </div>
+          <div>
+            check FRUIT allowance {fruniswapFruitAllow ? fmtEth(fruniswapFruitAllow) : '...'} &gt;= {newFruitAmount}
+          </div>
           <Button
             style={{ marginTop: 8 }}
             onClick={async () => {
@@ -90,12 +104,38 @@ export default function PairSwap({
           <Button
             style={{ marginTop: 8 }}
             onClick={async () => {
-              const result = tx(writeContracts.Fruniswap.swap(parseEth(newFruitAmount)), _onUpdate);
+              const result = tx(writeContracts.Fruniswap.sellFruit(parseEth(newFruitAmount)), _onUpdate);
               console.log("awaiting metamask/web3 confirm result...", result);
               console.log(await result);
             }}
           >
             Sell Fruit
+          </Button>
+        </div>
+        <Divider />
+        <div>
+          <div>
+            check FMATIC allowance {fruniswapFMaticAllow ? fmtEth(fruniswapFMaticAllow) : '...'} &gt;= {fmtEth(newFMaticAmount)} (cost in FMATIC to buy FRUIT amount entered)
+          </div>
+          <Button
+            style={{ marginTop: 8 }}
+            onClick={async () => {
+              const result = tx(writeContracts.FMatic.approve(writeContracts.Fruniswap.address, newFMaticAmount), _onUpdate);
+              console.log("awaiting metamask/web3 confirm result...", result);
+              console.log(await result);
+            }}
+          >
+            Approve FMATIC
+          </Button>
+          <Button
+            style={{ marginTop: 8 }}
+            onClick={async () => {
+              const result = tx(writeContracts.Fruniswap.buyFruit(parseEth(newFruitAmount)), _onUpdate);
+              console.log("awaiting metamask/web3 confirm result...", result);
+              console.log(await result);
+            }}
+          >
+            Buy Fruit
           </Button>
         </div>
         <Divider />
