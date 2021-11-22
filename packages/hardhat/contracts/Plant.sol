@@ -19,6 +19,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     // Every constant as wad
     uint256 immutable GAME_TICK = PRBU.fromUint(1 hours);
     uint256 immutable WATER_MAX_ABSORB = PRBU.fromUint(500);
+    uint256 immutable FRAILTY_THRESH = PRBU.fromUint(5000);
     uint256 constant public BASE_PRICE = 2 ether;
     uint256 constant public PRICE_INCREASE = 0.1 ether;
     uint256 immutable ONE = PRBU.fromUint(1);
@@ -55,15 +56,19 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
          */
         uint32 dna;
         // Plant properties
+        uint256 lastFrailty; // as wad
         uint256 lastNormalBranch; // as wad
         uint256 lastWeakBranch; // as wad
         uint256 lastDeadBranch; // as wad
+        uint256 lastDeadPruned; // as wad
         uint256 lastWaterLevel; // as wad
         uint256 lastWaterUseRate; // as wad
         uint256 lastWaterTicks; // as wad
         uint256 lastWateredAt;
         uint256 lastUpdatedAt;
         uint16 landId; // Its associated land
+        uint16 landSpecies;
+        uint256 landBurns;
     }
 
     /// Plants state
@@ -99,6 +104,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         requestRandomNumberFor(counter);
         // Initialize every plant state properties that don't use directly or indirectly the dna
         PlantState storage plant = plantStates[counter];
+        plant.lastFrailty = ONE;
         plant.lastNormalBranch = ONE;
         plant.lastWaterUseRate = waterUseRate(ONE, plant.lastWeakBranch, plant.lastDeadBranch);
         plant.lastWateredAt = block.timestamp;
@@ -139,6 +145,11 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         plant.lastNormalBranch -= prunedNormalBranch;
         plant.lastWeakBranch -= prunedWeakBranch;
         plant.lastDeadBranch -= prunedDeadBranch;
+        plant.lastDeadPruned += prunedDeadBranch;
+        // factor: ONE + PRBU.mul(PRBU.fromUint(traitValue), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)))
+        uint256 burnFactor = ONE + PRBU.mul(PRBU.fromUint(plant.landBurns), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)));
+        // Tree.frailty = 1+(Tree.deadPruned/((1 + .04*Ctx.landBurns) * factor('long') * FRAILTY_THRESH))**3;
+        plant.lastFrailty = 1 + PRBU.pow(PRBU.div(plant.lastDeadPruned, PRBU.mul(PRBU.mul(burnFactor, traitFactor(Trait.LONG, plant.dna)), FRAILTY_THRESH)), 3);
         // The plant won't consume as much water now
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
     }
@@ -193,15 +204,19 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
             uint256 newWetWeaken = wetWeaken(wetTicks, weakFactor, p.lastNormalBranch);
             uint256 newDryWeaken = dryWeaken(dryTicks, weakFactor, p.lastNormalBranch);
             uint256 newWetStrengthen = wetStrengthen(wetTicks, p.lastWeakBranch);
-            uint256 newWetGrowth = wetGrowth(wetTicks, traitFactor(Trait.GROWTH, p.dna), p.lastNormalBranch);
-            int256 newNormalBranchGrowth = normalBranchGrowth(newWetGrowth, newWetWeaken, newWetStrengthen, newDryWeaken);
-            // Cannot be less than 0
-            p.lastNormalBranch = Math.or0(Math.toInt256(p.lastNormalBranch) + newNormalBranchGrowth);
-            uint256 newDeadBranchGrowth = deadBranchGrowth(traitFactor(Trait.DIE, p.dna), ticks, p.lastWeakBranch);
-            p.lastDeadBranch = p.lastDeadBranch + newDeadBranchGrowth;
-            int256 newWeakBranchGrowth = weakBranchGrowth(newWetWeaken, newWetStrengthen, newDryWeaken, newDeadBranchGrowth);
-            // Cannot be less than 0
-            p.lastWeakBranch = Math.or0(Math.toInt256(p.lastWeakBranch) + newWeakBranchGrowth);
+            {
+              uint256 newWetGrowth = wetGrowth(wetTicks, traitFactor(Trait.GROWTH, p.dna), p.lastNormalBranch);
+              int256 newNormalBranchGrowth = normalBranchGrowth(newWetGrowth, newWetWeaken, newWetStrengthen, newDryWeaken, p.lastFrailty);
+              // Cannot be less than 0
+              p.lastNormalBranch = Math.or0(Math.toInt256(p.lastNormalBranch) + newNormalBranchGrowth);
+            }
+            {
+              uint256 newDeadBranchGrowth = deadBranchGrowth(traitFactor(Trait.DIE, p.dna), ticks, p.lastWeakBranch);
+              p.lastDeadBranch = p.lastDeadBranch + newDeadBranchGrowth;
+              int256 newWeakBranchGrowth = weakBranchGrowth(newWetWeaken, newWetStrengthen, newDryWeaken, newDeadBranchGrowth, p.lastFrailty);
+              // Cannot be less than 0
+              p.lastWeakBranch = Math.or0(Math.toInt256(p.lastWeakBranch) + newWeakBranchGrowth);
+            }
         }
         {
             (uint256 newWaterLevel, uint256 newWaterTicks) = remainingWater(ticks, p.lastWaterUseRate, p.lastWaterLevel, p.lastWaterTicks);
@@ -223,6 +238,9 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
             land.isPlanted(landId) && land.plantByLand(landId) != plantId
         ) revert Unauthorized();
         plant.landId = landId;
+        (, uint8[] memory species, uint32[] memory burns) = land.landDetailsByDistance(landId, 0);
+        plant.landSpecies = species[0];
+        plant.landBurns = burns[0]; // not PRBU
     }
 
     function burn(uint256 plantId, address sender) public {
@@ -254,16 +272,16 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
 
     // as wad
     // wetGrowth - wetWeaken + weStrengthen - dryWeaken
-    function normalBranchGrowth(uint256 newWetGrowth, uint256 newWetWeaken, uint256 newWetStrengthen, uint256 newDryWeaken) internal pure returns (int256) {
+    function normalBranchGrowth(uint256 newWetGrowth, uint256 newWetWeaken, uint256 newWetStrengthen, uint256 newDryWeaken, uint256 frailty) internal pure returns (int256) {
         // growth can be negative
-        return Math.toInt256(newWetGrowth) - Math.toInt256(newWetWeaken) + Math.toInt256(newWetStrengthen) - Math.toInt256(newDryWeaken);
+        return Math.toInt256(newWetGrowth) - Math.toInt256(PRBU.mul(frailty, newWetWeaken)) + Math.toInt256(newWetStrengthen) - Math.toInt256(PRBU.mul(frailty, newDryWeaken));
     }
 
     // as wad
     // wetWeaken + weStrengthen + dryWeaken - deadBranchGrowth
-    function weakBranchGrowth(uint256 newWetWeaken, uint256 newWetStrengthen, uint256 newDryWeaken, uint256 newDeadBranchGrowth) internal pure returns (int256) {
+    function weakBranchGrowth(uint256 newWetWeaken, uint256 newWetStrengthen, uint256 newDryWeaken, uint256 newDeadBranchGrowth, uint256 frailty) internal pure returns (int256) {
         // growth can be negative
-        return Math.toInt256(newWetWeaken) - Math.toInt256(newWetStrengthen) + Math.toInt256(newDryWeaken) - Math.toInt256(newDeadBranchGrowth);
+        return Math.toInt256(PRBU.mul(frailty, newWetWeaken)) - Math.toInt256(newWetStrengthen) + Math.toInt256(PRBU.mul(frailty, newDryWeaken)) - Math.toInt256(newDeadBranchGrowth);
     }
 
     // as wad
