@@ -54,11 +54,13 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // Verify your contracts with Etherscan
   // You don't want to verify on localhost
   if (chainId !== localChainId) {
+    /*
     await run("verify:verify", {
       address: Land.address,
       contract: "contracts/Land.sol:Land",
       contractArguments: [],
     });
+    */
   }
 };
 module.exports.tags = ["land"];
