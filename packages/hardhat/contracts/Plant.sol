@@ -188,6 +188,24 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         return filtered;
     }
 
+    function plantedByAddress(address addr) external view returns (uint256[] memory) {
+        require(addr != address(0), "Invalid address");
+        uint256 balance = balanceOf(addr);
+        uint256 count;
+        uint256[] memory ids = new uint256[](balance);
+        for (uint256 i; i < balance; i++) {
+            uint256 plantId = tokenOfOwnerByIndex(addr, i);
+            if (isPlanted(plantStates[plantId])) {
+                ids[count++] = plantId;
+            } 
+        }
+        uint256[] memory filtered = new uint256[](count);
+        for (uint256 i; i < count; i++) {
+            filtered[i] = ids[i];
+        }
+        return filtered;
+    }
+
     /* --- Plant state helper functions --- */
 
     /// Query a plant current state

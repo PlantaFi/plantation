@@ -799,7 +799,7 @@ module.exports = {
     },
   },
   80001: {
-    contracts: {
+      "contracts": {
         "FMatic": {
           "address": "0xA31dE1f6B4122B0b300E5276005e276115085bb9",
           "abi": [
@@ -1604,7 +1604,7 @@ module.exports = {
           ]
         },
         "Land": {
-          "address": "0xEB07cE3f71598DCf4D99f27CBC20698CEf6b30d2",
+          "address": "0x944b67789664F32f53fF7E70C5572baB11424505",
           "abi": [
             {
               "inputs": [],
@@ -2410,7 +2410,7 @@ module.exports = {
           ]
         },
         "Plant": {
-          "address": "0x53b357b5378259d507B29F3bbD3F23545Faf7EcB",
+          "address": "0x48100AF2aCd0801FaEa598da506b616249EbDb32",
           "abi": [
             {
               "inputs": [
@@ -2861,6 +2861,25 @@ module.exports = {
                   "internalType": "address",
                   "name": "",
                   "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                }
+              ],
+              "name": "plantedByAddress",
+              "outputs": [
+                {
+                  "internalType": "uint256[]",
+                  "name": "",
+                  "type": "uint256[]"
                 }
               ],
               "stateMutability": "view",
