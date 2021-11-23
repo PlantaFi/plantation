@@ -12,6 +12,7 @@ import {
   useOnBlock,
   useUserProviderAndSigner,
 } from "eth-hooks";
+
 import backSand from "../assets/sand.png";
 import backGrass from "../assets/grass.png";
 import backTree from "../assets/tree.png";
