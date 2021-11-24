@@ -6,7 +6,7 @@ import { Plant } from "../Plant.sol";
 
 contract PlantMock is Plant {
 
-    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, address _land, address _fruit) Plant(_vrfCoordinator, _link, _keyHash, _fee, _land, _fruit) {}
+    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, address _land, address _fruit, address _fertilizer) Plant(_vrfCoordinator, _link, _keyHash, _fee, _land, _fruit, _fertilizer) {}
 
     function doTraitFactor(Trait trait, uint32 dna) external view returns (uint256) {
         return traitFactor(trait, dna);

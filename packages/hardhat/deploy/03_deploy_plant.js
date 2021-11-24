@@ -6,6 +6,7 @@ module.exports = async hre => {
     let linkMock;
     const land = await hre.ethers.getContract("Land");
     const fruit = await hre.ethers.getContract("Fruit");
+    const fmatic = await hre.ethers.getContract("FMatic");
 
     const network = await hre.ethers.provider.getNetwork();
     const chainId = network.chainId;
@@ -25,6 +26,7 @@ module.exports = async hre => {
                 hre.ethers.utils.parseEther("0.0001"),
                 land.address,
                 fruit.address,
+                fmatic.address,
             ],
             log: true,
         });
@@ -42,12 +44,14 @@ module.exports = async hre => {
             hre.ethers.utils.parseEther("0.0001"),
             land.address,
             fruit.address,
+            fmatic.address,
         ],
         log: true,
     });
 
     const plant = await hre.ethers.getContract("Plant");
     await land._initialize(plant.address);
+    await fruit._initialize(plant.address);
     if (chainId === 31337) {
         await linkMock.transfer(plant.address, hre.ethers.utils.parseEther("10"));
     } else {
@@ -56,4 +60,4 @@ module.exports = async hre => {
 };
 
 module.exports.tags = ["plant"];
-module.exports.dependencies = ["mocks", "fruit", "land"];
+module.exports.dependencies = ["mocks", "fruit", "fmatic", "land"];
