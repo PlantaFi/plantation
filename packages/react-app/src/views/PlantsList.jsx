@@ -15,8 +15,7 @@ function DisplayPlantsList({ plantId, setPlantId }) {
           bordered
           dataSource={data}
           renderItem={item => (
-            <List.Item key={item}>
-              {" "}
+            <List.Item key={item} onClick={() => setPlantId(item)}>
               <Link to="/plant">{item}</Link>
             </List.Item>
           )}
@@ -29,7 +28,6 @@ function DisplayPlantsList({ plantId, setPlantId }) {
 export default function PlantsList({ address, readContracts, writeContracts, tx }) {
   const plantList = useContractReader(readContracts, "Plant", "plantedByAddress", [address]);
   const [plantId, setPlantId] = useState();
-  console.log("plantList " + plantList);
   return (
     <div>
       <BrowserRouter>

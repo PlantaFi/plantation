@@ -23,7 +23,7 @@ import {
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 // import Hints from "./Hints";
-import { ExampleUI, PairSwap, Hints, Subgraph, Banks, Shop, Plant, Map } from "./views";
+import { ExampleUI, PairSwap, Hints, Subgraph, Banks, Shop, Plant, Map, PlantsList } from "./views";
 
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
@@ -238,7 +238,10 @@ function App(props) {
 
   // const contractConfig = useContractConfig();
 
-  const contractConfig = { deployedContracts: deployedContracts || {}, externalContracts: externalContracts || {} };
+  const contractConfig = {
+    deployedContracts: deployedContracts || {},
+    externalContracts: externalContracts || {},
+  };
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(localProvider, contractConfig);
@@ -316,14 +319,21 @@ function App(props) {
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div
+          style={{
+            zIndex: 2,
+            position: "absolute",
+            right: 0,
+            top: 60,
+            padding: 16,
+          }}
+        >
           <Alert
             message="⚠️ Wrong Network ID"
             description={
               <div>
-                You have <b>chain id 1337</b> for localhost and you need to change it to <b>31337</b> to work with
-                HardHat.
-                <div>(MetaMask -&gt; Settings -&gt; Networks -&gt; Chain ID -&gt; 31337)</div>
+                You have <b> chain id 1337 </b> for localhost and you need to change it to <b>31337</b> to work with
+                HardHat. <div> (MetaMask - & gt; Settings - & gt; Networks - & gt; Chain ID - & gt; 31337) </div>
               </div>
             }
             type="error"
@@ -333,12 +343,20 @@ function App(props) {
       );
     } else {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div
+          style={{
+            zIndex: 2,
+            position: "absolute",
+            right: 0,
+            top: 60,
+            padding: 16,
+          }}
+        >
           <Alert
             message="⚠️ Wrong Network"
             description={
               <div>
-                You have <b>{networkSelected && networkSelected.name}</b> selected and you need to be on{" "}
+                You have <b> {networkSelected && networkSelected.name} </b> selected and you need to be on
                 <Button
                   onClick={async () => {
                     const ethereum = window.ethereum;
@@ -358,7 +376,11 @@ function App(props) {
                     try {
                       switchTx = await ethereum.request({
                         method: "wallet_switchEthereumChain",
-                        params: [{ chainId: data[0].chainId }],
+                        params: [
+                          {
+                            chainId: data[0].chainId,
+                          },
+                        ],
                       });
                     } catch (switchError) {
                       // not checking specific error code, because maybe we're not using MetaMask
@@ -377,7 +399,7 @@ function App(props) {
                     }
                   }}
                 >
-                  <b>{networkLocal && networkLocal.name}</b>
+                  <b> {networkLocal && networkLocal.name} </b>
                 </Button>
               </div>
             }
@@ -389,7 +411,17 @@ function App(props) {
     }
   } else {
     networkDisplay = (
-      <div style={{ zIndex: -1, position: "absolute", right: 154, top: 28, padding: 16, color: targetNetwork.color }}>
+      <div
+        style={{
+          zIndex: -1,
+          position: "absolute",
+          right: 154,
+          top: 28,
+          padding: 16,
+          color: targetNetwork.color,
+        }}
+      >
+
         {targetNetwork.name}
       </div>
     );
@@ -397,9 +429,19 @@ function App(props) {
 
   let title = "";
   title = (
-    <div style={{ textAlign: "center" }}>
+    <div
+      style={{
+        textAlign: "center",
+      }}
+    >
       <Title mark>
-        <span className="buchs-long-dark" style={{ fontFamily: "P0T-NOoDLE", padding: 12 }}>
+        <span
+          className="buchs-long-dark"
+          style={{
+            fontFamily: "P0T-NOoDLE",
+            padding: 12,
+          }}
+        >
           plantation 1.0
         </span>
       </Title>
@@ -451,7 +493,11 @@ function App(props) {
     ethers.utils.formatEther(yourLocalBalance) <= 0
   ) {
     faucetHint = (
-      <div style={{ padding: 16 }}>
+      <div
+        style={{
+          padding: 16,
+        }}
+      >
         <Button
           type="primary"
           onClick={() => {
@@ -462,7 +508,7 @@ function App(props) {
             setFaucetClicked(true);
           }}
         >
-          💰 Grab funds from the faucet ⛽️
+          💰Grab funds from the faucet⛽️
         </Button>
       </div>
     );
@@ -470,16 +516,14 @@ function App(props) {
 
   return (
     <div className="App">
-      {/* ✏️ Edit the header and change the title to your project name */}
-      <Header />
-      {networkDisplay}
-      {title}
+
+      {/* ✏️ Edit the header and change the title to your project name */} <Header /> {networkDisplay} {title}
       <BrowserRouter>
         <div className="nes-container with-title">
-          <p className="title">Menu</p>
+          <p className="title"> Menu </p>
           <p>
             <span className="nes-text is-success">
-              <Link to="/"> Plant </Link>
+              <Link to="/"> Plant List </Link>
             </span>
             |
             <span className="nes-text is-success">
@@ -487,45 +531,56 @@ function App(props) {
             </span>
             |
             <span className="nes-text is-primary">
-              <Link
-                onClick={() => {
-                  setRoute("/");
-                }}
-                to="/map"
-              >
-                {" "}
-                Map{" "}
-              </Link>
+              <Link to="/map"> Map </Link>
             </span>
-            |<span className="nes-text is-disabled"> Help</span>
+            |<span className="nes-text is-disabled"> Help </span>|
+            <span class="nes-text is-disabled">
+
+              <Link to="/land">Help land </Link>
+            </span>
+            |
+            <span class="nes-text is-disabled">
+
+              <Link to="/fruit">Help Fruit </Link>
+            </span>
+            |
+            <span class="nes-text is-disabled">
+
+              <Link to="/plant">Help Plant </Link>
+            </span>
           </p>
         </div>
-        <div className="buchs-icon buchs-icon-left" style={{ float: "left" }}></div>
-        <div className="buchs-icon buchs-icon-right" style={{ float: "right" }}></div>
+        <div
+          className="buchs-icon buchs-icon-left"
+          style={{
+            float: "left",
+          }}
+        >
 
+        </div>
+        <div
+          className="buchs-icon buchs-icon-right"
+          style={{
+            float: "right",
+          }}
+        >
+
+        </div>
         <Switch>
           <Route exact path="/">
-            {/*
-                🎛 this scaffolding is full of commonly used components
-                this <Contract/> component will automatically parse your ABI
-                and give you a form to interact with it locally
-            */}
 
-            <Plant
+            {/*
+                        🎛 this scaffolding is full of commonly used components
+                        this <Contract/> component will automatically parse your ABI
+                        and give you a form to interact with it locally
+                    */}
+            <PlantsList
               address={address}
-              userSigner={userSigner}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
               tx={tx}
               writeContracts={writeContracts}
               readContracts={readContracts}
-              purpose={purpose}
-              setPurposeEvents={setPurposeEvents}
             />
           </Route>
-
           <Route path="/shop">
             <Shop
               address={address}
@@ -556,7 +611,6 @@ function App(props) {
               setPurposeEvents={setPurposeEvents}
             />
           </Route>
-
           <Route path="/map">
             <Map address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
           </Route>
@@ -584,18 +638,22 @@ function App(props) {
             />
           </Route>
           <Route path="/pairswap">
-           {writeContracts.Fruniswap ?
-            <PairSwap
-              address={address}
-              userSigner={userSigner}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-            /> : ''}
+
+            {writeContracts.Fruniswap ? (
+              <PairSwap
+                address={address}
+                userSigner={userSigner}
+                mainnetProvider={mainnetProvider}
+                localProvider={localProvider}
+                yourLocalBalance={yourLocalBalance}
+                price={price}
+                tx={tx}
+                writeContracts={writeContracts}
+                readContracts={readContracts}
+              />
+            ) : (
+              ""
+            )}
           </Route>
           <Route path="/land">
             <Contract
@@ -682,33 +740,39 @@ function App(props) {
               contractConfig={contractConfig}
             />
             {/*
-              <Contract
-                name="plant"
-                customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
-                signer={userSigner}
-                provider={mainnetProvider}
-                address={address}
-                blockExplorer="https://etherscan.io/"
-                contractConfig={contractConfig}
-                chainId={1}
-              />
-            <Contract
-              name="UNI"
-              customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
-              signer={userSigner}
-              provider={mainnetProvider}
-              address={address}
-              blockExplorer="https://etherscan.io/"
-            />
-            */}
+                        <Contract
+                          name="plant"
+                          customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
+                          signer={userSigner}
+                          provider={mainnetProvider}
+                          address={address}
+                          blockExplorer="https://etherscan.io/"
+                          contractConfig={contractConfig}
+                          chainId={1}
+                        />
+                      <Contract
+                        name="UNI"
+                        customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
+                        signer={userSigner}
+                        provider={mainnetProvider}
+                        address={address}
+                        blockExplorer="https://etherscan.io/"
+                      />
+                      */}
           </Route>
         </Switch>
       </BrowserRouter>
-
       <ThemeSwitch />
-
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
-      <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
+      <div
+        style={{
+          position: "fixed",
+          textAlign: "right",
+          right: 0,
+          top: 0,
+          padding: 10,
+        }}
+      >
         <Account
           address={address}
           localProvider={localProvider}
@@ -723,16 +787,35 @@ function App(props) {
         {faucetHint}
       </div>
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
-      <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
+      <div
+        style={{
+          position: "fixed",
+          textAlign: "left",
+          left: 0,
+          bottom: 20,
+          padding: 10,
+        }}
+      >
         <Row align="middle" gutter={[4, 4]}>
           <Col span={8}>
             <Ramp price={price} address={address} networks={NETWORKS} />
           </Col>
-
-          <Col span={8} style={{ textAlign: "center", opacity: 0.8 }}>
+          <Col
+            span={8}
+            style={{
+              textAlign: "center",
+              opacity: 0.8,
+            }}
+          >
             <GasGauge gasPrice={gasPrice} />
           </Col>
-          <Col span={8} style={{ textAlign: "center", opacity: 1 }}>
+          <Col
+            span={8}
+            style={{
+              textAlign: "center",
+              opacity: 1,
+            }}
+          >
             <Button
               onClick={() => {
                 window.open("https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA");
@@ -740,20 +823,38 @@ function App(props) {
               size="large"
               shape="round"
             >
-              <span style={{ marginRight: 8 }} role="img" aria-label="support">
+              <span
+                style={{
+                  marginRight: 8,
+                }}
+                role="img"
+                aria-label="support"
+              >
+
                 💬
               </span>
               Support
             </Button>
           </Col>
         </Row>
-
         <Row align="middle" gutter={[4, 4]}>
           <Col span={24}>
+
             {/*  if the local provider has a signer, let's show the faucet:  */
-            faucetAvailable ? <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} /> : ""}
+            faucetAvailable ? (
+              <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
+            ) : (
+              ""
+            )}
           </Col>
         </Row>
+      </div>
+      <div className="nes-container with-title">
+        <p className="title">Footer</p>
+        <p>
+          <span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> |{" "}
+          <span class="nes-text is-disabled">Help</span>{" "}
+        </p>
       </div>
     </div>
   );
