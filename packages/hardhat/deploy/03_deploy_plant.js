@@ -3,6 +3,7 @@ module.exports = async hre => {
     let linkAddr;
     let vrfCoordinatorAddr;
     let keyHash;
+    let linkMock;
     const land = await hre.ethers.getContract("Land");
     const fruit = await hre.ethers.getContract("Fruit");
 
@@ -11,14 +12,14 @@ module.exports = async hre => {
     // for tests
     if (chainId === 31337) {
         const vrfCoordinatorMock = await hre.ethers.getContract("VRFCoordinatorMock");
-        const linkMock = await hre.ethers.getContract("ChainlinkMock");
+        linkMock = await hre.ethers.getContract("ChainlinkMock");
         keyHash = "0xf86195cf7690c55907b2b611ebb7343a6f649bff128701cc542f0569e2c549da";
         linkAddr = linkMock.address;
         vrfCoordinatorAddr = vrfCoordinatorMock.address;
         await hre.deployments.deploy("PlantMock", {
             from: deployer,
             args: [
-                vrfCoordinator.address,
+                vrfCoordinatorMock.address,
                 linkAddr,
                 keyHash,
                 hre.ethers.utils.parseEther("0.0001"),

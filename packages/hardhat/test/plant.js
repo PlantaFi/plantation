@@ -86,6 +86,32 @@ describe("Plant", () => {
         });
     });
 
+    describe("prune", () => {
+
+        it("should mint a plant token, prune it, and update frailty", async () => {
+            const { user1, plant, fruit } = await setup();
+            const supplyBefore = await plant.totalSupply();
+            const balanceBefore = await plant.balanceOf(user1.address);
+            const fruitBalanceBefore = await fruit.balanceOf(user1.address);
+            const price = await plant.currentPrice();
+            const tx = await plant.buy();
+            const receipt = await tx.wait();
+            expect(await fruit.balanceOf(user1.address)).to.equal(fruitBalanceBefore.sub(price));
+            const plantId = receipt.events.find(e => e.event === "PlantCreationStarted").args["plantId"];
+            const random = hre.ethers.BigNumber.from(crypto.randomBytes(32));
+            await expect(plant.doFulfillRandomness(plantId, random, { gasLimit: 206000 + 22086 })).to.emit(plant, "Transfer").withArgs(hre.ethers.constants.AddressZero, user1.address, plantId);
+            expect(await plant.totalSupply()).to.equal(supplyBefore.add(1));
+            expect(await plant.balanceOf(user1.address)).to.equal(balanceBefore.add(1));
+
+            const pruneTx = await plant.prune(plantId);
+            const pruneReceipt = await pruneTx.wait();
+            const state = await plant.state(plantId);
+            // expect no change
+            expect(state.lastDeadPruned.toString()).to.equal("0");
+            expect(state.lastFrailty.toString()).to.equal(hre.ethers.utils.parseEther("1").toString());
+        });
+    });
+
     describe("currentPrice", () => {
         
         it("should return the correct price", async () => {

@@ -13,9 +13,9 @@ import {
   useUserProviderAndSigner,
 } from "eth-hooks";
 
-import backSand from "../assets/sand.png";
-import backGrass from "../assets/grass.png";
-import backTree from "../assets/tree.png";
+import backSand from "../assets/questwater2.png";
+import backGrass from "../assets/questgrass4.png";
+import backTree from "../assets/questtreeA3.png";
 
 function maxArray({ distance }) {
   return Math.pow(distance + distance + 1, 2);
@@ -57,10 +57,8 @@ function MapDesign({
       <Col key={i.toString()} span={24 / colNum}>
         <div
           style={{
-            border: "1px solid #000000",
-            borderRadius: "1px",
-            width: 45,
-            height: 46,
+            width: 42,
+            height: 42,
             backgroundColor: "white",
             display: "inline-flex",
             alignItems: "center",
@@ -79,8 +77,8 @@ function MapDesign({
               src={backgroundImg}
               style={{
                 objectFit: "fill",
-                width: 45,
-                height: 45,
+                width: 42,
+                height: 42,
               }}
             />
           </Link>

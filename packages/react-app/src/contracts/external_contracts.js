@@ -1604,7 +1604,7 @@ module.exports = {
           ]
         },
         "Land": {
-          "address": "0x944b67789664F32f53fF7E70C5572baB11424505",
+          "address": "0x13ef4e0C764B249dddDCb3C40057f359405Fe2a7",
           "abi": [
             {
               "inputs": [],
@@ -2410,7 +2410,7 @@ module.exports = {
           ]
         },
         "Plant": {
-          "address": "0x48100AF2aCd0801FaEa598da506b616249EbDb32",
+          "address": "0x21b213a992e542DA9429247f29BBD127d89A8f3C",
           "abi": [
             {
               "inputs": [
