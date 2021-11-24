@@ -163,9 +163,13 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
     }
 
+    function fertilizeCost() public view returns (uint256) {
+        return 1 ether;
+    }
+ 
     /// Fertilize a plant - constant amount
-    function fertilize(uint256 plantId) external {
-        uint256 price = 1 ether;
+    function fertilize(uint256 plantId) external returns (uint256) {
+        uint256 price = fertilizeCost();
         // TODO calculate price from Uniswap
         if (!fertilizer.transferFrom(msg.sender, address(this), price)) revert FailedTransfer(address(fertilizer), msg.sender, address(this), price);
         // TODO take out tax
@@ -183,7 +187,16 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         plant.lastWaterTicks = PRBU.div(plant.lastWaterLevel, plant.lastWaterUseRate);
         plant.lastWateredAt = block.timestamp;
         */
+        return flowerAmount;
     }
+
+    function harvest(uint256 plantId) external {
+        PlantState storage plant = plantStates[plantId];
+        // TODO real check that amount is harvestable
+        fruit.transfer(msg.sender, plant.flowers);
+        plant.flowers = 0;
+        // TODO compounded bonus for staking past ripening
+    }   
 
     /**
      * Burn one of `your` `plants` and empty the corresponding `land`.
