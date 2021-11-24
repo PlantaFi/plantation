@@ -149,7 +149,11 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         // factor: ONE + PRBU.mul(PRBU.fromUint(traitValue), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)))
         uint256 burnFactor = ONE + PRBU.mul(PRBU.fromUint(plant.landBurns), PRBU.div(PRBU.fromUint(4), PRBU.fromUint(100)));
         // Tree.frailty = 1+(Tree.deadPruned/((1 + .04*Ctx.landBurns) * factor('long') * FRAILTY_THRESH))**3;
-        plant.lastFrailty = 1 + PRBU.pow(PRBU.div(plant.lastDeadPruned, PRBU.mul(PRBU.mul(burnFactor, traitFactor(Trait.LONG, plant.dna)), FRAILTY_THRESH)), 3);
+        if (plant.lastDeadPruned <= PRBU.mul(PRBU.mul(burnFactor, traitFactor(Trait.LONG, plant.dna)), FRAILTY_THRESH)) {
+          // XXX can't PRBU.pow from <1e18 so skip: plant.lastFrailty = 1 + PRBU.pow(ONE, 3);
+        } else {
+          plant.lastFrailty = 1 + PRBU.pow(PRBU.div(plant.lastDeadPruned, PRBU.mul(PRBU.mul(burnFactor, traitFactor(Trait.LONG, plant.dna)), FRAILTY_THRESH)), 3);
+        }
         // The plant won't consume as much water now
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
     }
