@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Button, List } from "antd";
 import { utils } from "ethers";
 import { useContractReader } from "eth-hooks";
-import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 
 function AnalyseData({ plantId }) {
   return;
@@ -67,7 +66,7 @@ function BuyLand({ writeContracts, landTokenId, address, tx }) {
   );
 }
 
-function DisplaySeedsList({ seed, ownerAddress, landTokenId, readContracts, writeContracts, tx, setPlantId }) {
+function DisplaySeedsList({ seed, setPlantId }) {
   let data = [];
   data.push(seed._hex);
 
@@ -105,11 +104,6 @@ function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts
             {ownedUnplantedList.map(seed => (
               <DisplaySeedsList
                 seed={seed}
-                wnerAddress={ownerAddress}
-                landTokenId={landTokenId}
-                readContracts={readContracts}
-                writeContracts={writeContracts}
-                tx={tx}
                 setPlantId={setPlantId}
               />
             ))}
