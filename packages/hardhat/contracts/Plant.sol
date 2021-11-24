@@ -12,6 +12,7 @@ import { PRBMathUD60x18 as PRBU } from "prb-math/contracts/PRBMathUD60x18.sol";
 import { Math } from "./Math.sol";
 import { Unauthorized, InsufficientLinkFunds, FailedTransfer } from "./Shared.sol";
 import { Land } from "./Land.sol";
+import { Fruit } from "./Fruit.sol";
 
 contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
 
@@ -36,7 +37,8 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     uint256 immutable chainlinkFee;
     // Contracts
     Land immutable land;
-    IERC20 immutable fruit;
+    Fruit immutable fruit;
+    IERC20 immutable fertilizer;
 
     struct PlantState {
         // Seed properties
@@ -68,7 +70,9 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         uint256 lastUpdatedAt;
         uint16 landId; // Its associated land
         uint16 landSpecies;
-        uint256 landBurns;
+        uint256 landBurns; // normal int
+        uint256 flowers; // amount of ERC20 token
+        uint256 lastFertilizedAt;
     }
 
     /// Plants state
@@ -81,11 +85,12 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     /// The plant `plantId` is being created
     event PlantCreationStarted(uint256 indexed plantId);
 
-    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, address _land, address _fruit) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
+    constructor(address _vrfCoordinator, address _link, bytes32 _keyHash, uint256 _fee, address _land, address _fruit, address _fertilizer) ERC721("Plant", "PLANT") VRFConsumerBase(_vrfCoordinator, _link) {
         chainlinkKeyHash = _keyHash;
         chainlinkFee = _fee;
         land = Land(_land);
-        fruit = IERC20(_fruit);
+        fruit = Fruit(_fruit);
+        fertilizer = IERC20(_fertilizer);
     }
 
     /* --- Action functions --- */
@@ -156,6 +161,28 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         }
         // The plant won't consume as much water now
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
+    }
+
+    /// Fertilize a plant - constant amount
+    function fertilize(uint256 plantId) external {
+        uint256 price = 1 ether;
+        // TODO calculate price from Uniswap
+        if (!fertilizer.transferFrom(msg.sender, address(this), price)) revert FailedTransfer(address(fertilizer), msg.sender, address(this), price);
+        // TODO take out tax
+        // TODO track fertilizedFrom used when harvesting
+        // TODO mint fruit but keep it - does it stay in fruit contract? or add to pool?
+        PlantState storage plant = plantStates[plantId];
+        plant.lastFertilizedAt = block.timestamp;
+        uint256 flowerAmount = 1 ether;
+        fruit.mintFlowers(flowerAmount);
+        plant.flowers = flowerAmount; // overwrites any previous flowers, potentially leaving in limbo
+        /*
+        updateState(plant);
+        plant.lastWaterLevel = waterAbsorbed(traitFactor(Trait.ABSORB, plant.dna), plant.lastNormalBranch);
+        plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
+        plant.lastWaterTicks = PRBU.div(plant.lastWaterLevel, plant.lastWaterUseRate);
+        plant.lastWateredAt = block.timestamp;
+        */
     }
 
     /**
