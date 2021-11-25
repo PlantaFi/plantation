@@ -790,7 +790,6 @@ function App(props) {
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div
         style={{
-          position: "fixed",
           textAlign: "left",
           left: 0,
           bottom: 20,
