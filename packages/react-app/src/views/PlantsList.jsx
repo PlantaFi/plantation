@@ -27,6 +27,7 @@ function DisplayPlantsList({ plantId, setPlantId }) {
 
 export default function PlantsList({ address, readContracts, writeContracts, tx }) {
   const plantList = useContractReader(readContracts, "Plant", "plantedByAddress", [address]);
+  console.log(plantList);
   const [plantId, setPlantId] = useState();
   return (
     <div>
