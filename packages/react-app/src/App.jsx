@@ -551,22 +551,6 @@ function App(props) {
             </span>
           </p>
         </div>
-        <div
-          className="buchs-icon buchs-icon-left"
-          style={{
-            float: "left",
-          }}
-        >
-
-        </div>
-        <div
-          className="buchs-icon buchs-icon-right"
-          style={{
-            float: "right",
-          }}
-        >
-
-        </div>
         <Switch>
           <Route exact path="/">
 
@@ -785,7 +769,7 @@ function App(props) {
           logoutOfWeb3Modal={logoutOfWeb3Modal}
           blockExplorer={blockExplorer}
         />
-        {faucetHint}
+        {/*faucetHint*/}
       </div>
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div
