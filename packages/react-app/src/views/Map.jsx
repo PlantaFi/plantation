@@ -121,60 +121,55 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
     */}
             <div
               style={{
-                border: "10px solid #fc8c03",
-                borderRadius: "10px",
+                /*border: "10px solid #fc8c03",
+                borderRadius: "10px",*/
                 padding: 16,
-                width: 420,
+                width: 720,
                 margin: "auto",
                 marginTop: 64,
-                backgroundColor: "lightgray",
+                backgroundColor: "white",
                 textAlign: "center",
               }}
             >
-              <h1>welcome to Map</h1>
-              <div style={{ overflow: "scroll scroll", height: 550, paddingTop: 50, textAlign: "center" }}>
-                <Button
-                  type="text"
-                  icon={<UpOutlined />}
-                  onClick={() => {
-                    if (currentx > 4) setCurrentx(currentx - 4);
-                  }}
-                />
-                <Divider orientation="left"></Divider>
+              <h1>Plantaland World Map</h1>
+              <div style={{ /*overflow: "scroll scroll", height: 550,*/ paddingTop: 50, textAlign: "center", backgroundColor: '#436ee7' }}>
+                <div>
+                  <button type="button" style={{ margin: 10 }} class="nes-btn"
+                    onClick={() => {
+                      if (currentx > 4) setCurrentx(currentx - 4);
+                    }}
+                  >North</button>
+                </div>
                 <div
                   style={{
-                    width: 20,
+                    width: 150,
                     height: 300,
                     float: "left",
                     display: "flex",
                     alignItems: "center",
                   }}
                 >
-                  <Button
-                    type="text"
-                    icon={<LeftOutlined />}
+                  <button type="button" style={{ margin: 10 }} class="nes-btn"
                     onClick={() => {
                       if (currenty > 4) setCurrenty(currenty - 4);
                     }}
-                  />
+                  >&lt; West</button>
                 </div>
                 <div
                   style={{
-                    width: 20,
                     height: 300,
                     float: "right",
                     display: "flex",
                     alignItems: "center",
                   }}
                 >
-                  <Button
-                    type="text"
-                    icon={<RightOutlined />}
+                  <button type="button" style={{ margin: 10 }} class="nes-btn"
                     onClick={() => {
                       if (currenty < 28) setCurrenty(currenty + 4);
                     }}
-                  />
+                  >East &gt;</button>
                 </div>
+                <div style={{border: "4px solid #54dfff", padding: 4, width: 342, display: 'inline-block', backgroundColor: 'black'}}> <div style={{border: "4px solid lightgray", padding: 4, backgroundColor: 'black'}}> <div style={{border: "4px solid gray", padding: 4, backgroundColor: 'black'}}>
                 {landinfodistance ? (
                   <MapDesign
                     distanceInfo={landinfodistance}
@@ -188,15 +183,12 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                 ) : (
                   "loading.."
                 )}
-
-                <Divider orientation="left"></Divider>
-                <Button
-                  type="text"
-                  icon={<DownOutlined />}
+                </div> </div> </div>
+                <button type="button" style={{ margin: 10 }} class="nes-btn"
                   onClick={() => {
                     if (currentx < 28) setCurrentx(currentx + 4);
                   }}
-                />
+                >South</button>
               </div>
             </div>
           </div>
