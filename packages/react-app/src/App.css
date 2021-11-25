@@ -25,6 +25,23 @@
     font-family: "PressStart2P";
 }
 
+@media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+  .nes-container.is-rounded {
+    border-image-repeat: stretch;
+  }
+}
+@media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+  .nes-balloon {
+    border-image-repeat: stretch;
+  }
+}
+
+@media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+  .nes-progress {
+    border-image-repeat: stretch;
+  }
+}
+
 /* credit: http://opengameart.org/users/buch */
 .buchs-square-dark {
     border-style: solid;
