@@ -16,6 +16,7 @@ import {
 import backSand from "../assets/questwater2.png";
 import backGrass from "../assets/questgrass4.png";
 import backTree from "../assets/questtreeA3.png";
+import windrose from "../assets/windrose.png";
 
 function maxArray({ distance }) {
   return Math.pow(distance + distance + 1, 2);
@@ -138,13 +139,15 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               }}
             >
               <h1>Plantaland World Map</h1>
-              <div
-                style={{
-                  /*overflow: "scroll scroll", height: 550,*/ paddingTop: 50,
-                  textAlign: "center",
-                  backgroundColor: "#436ee7",
+              <div style={{ /*overflow: "scroll scroll", height: 550,*/ paddingTop: 50, textAlign: "center", backgroundColor: '#436ee7' }}>
+                <img src={windrose} style={{
+                      position: 'absolute',
+                      top: 2,
+                      left: 5,
+                      width: 120,
                 }}
-              >
+                />
+                <h3 style={{color: 'white', marginTop: -20}}>Location: ({currentx}, {currenty})</h3>
                 <div>
                   <button
                     type="button"
