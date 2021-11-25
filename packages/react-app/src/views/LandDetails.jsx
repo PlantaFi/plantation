@@ -92,6 +92,7 @@ function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts
   const [btnStr, setBtnStr] = useState("Plant");
   const [plantId, setPlantId] = useState();
   const [displayList, setDisplayList] = useState(true);
+  const [transcationError, setTranscationError] = useState("");
 
   console.log("ownedUnplanted " + ownedUnplantedList);
 
@@ -103,41 +104,44 @@ function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts
           <div>
             <h4>{chooseStr}</h4>
             {ownedUnplantedList.map(seed => (
-              <DisplaySeedsList
-                seed={seed}
-                setPlantId={setPlantId}
-              />
+              <DisplaySeedsList seed={seed} setPlantId={setPlantId} />
             ))}
             <Button
               style={{ margin: 5 }}
               className="nes-btn is-success"
               onClick={async () => {
-                setBtnStr("loading...");
-                const result = tx(writeContracts.Land.implant(landTokenId, plantId), update => {
-                  console.log("📡 Transaction Update:", update);
-                  if (update && (update.status === "confirmed" || update.status === 1)) {
-                    console.log(" 🍾 Transaction " + update.hash + " finished!");
-                    console.log(
-                      " ⛽️ " +
-                        update.gasUsed +
-                        "/" +
-                        (update.gasLimit || update.gas) +
-                        " @ " +
-                        parseFloat(update.gasPrice) / 1000000000 +
-                        " gwei",
-                    );
-                  }
-                });
-                console.log("awaiting metamask/web3 confirm result...", result);
-                console.log(await result);
-                setBtnStr("Plant");
-                setChooseStr("");
-                setTransactionStr(plantId);
-                setDisplayList(false);
+                if (plantId != undefined) {
+                  setBtnStr("loading...");
+                  const result = tx(writeContracts.Land.implant(landTokenId, plantId), update => {
+                    console.log("📡 Transaction Update:", update);
+                    if (update && (update.status === "confirmed" || update.status === 1)) {
+                      console.log(" 🍾 Transaction " + update.hash + " finished!");
+                      console.log(
+                        " ⛽️ " +
+                          update.gasUsed +
+                          "/" +
+                          (update.gasLimit || update.gas) +
+                          " @ " +
+                          parseFloat(update.gasPrice) / 1000000000 +
+                          " gwei",
+                      );
+                    }
+                  });
+                  console.log("awaiting metamask/web3 confirm result...", result);
+                  console.log(await result);
+                  setBtnStr("Plant");
+                  setChooseStr("");
+                  setTransactionStr(plantId);
+                  setDisplayList(false);
+                  setTranscationError("");
+                } else {
+                  setTranscationError("No seed is chosen!");
+                }
               }}
             >
               {btnStr}
             </Button>
+            <h5 style={{ color: "red" }}>{transcationError}</h5>
           </div>
         ) : (
           <div>{displayList ? "You don't have any seeds. Please buy more seeds from SHOP." : ""}</div>
