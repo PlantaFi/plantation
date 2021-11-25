@@ -51,6 +51,7 @@ describe("Plant", () => {
                 ethers.constants.Zero,
                 ethers.constants.AddressZero,
                 ethers.constants.AddressZero,
+                ethers.constants.AddressZero,
             );
         });
     });
@@ -103,12 +104,59 @@ describe("Plant", () => {
             expect(await plant.totalSupply()).to.equal(supplyBefore.add(1));
             expect(await plant.balanceOf(user1.address)).to.equal(balanceBefore.add(1));
 
+            // expect no change at first
+            const pruneTx1 = await plant.prune(plantId);
+            await pruneTx1.wait();
+            const state1 = await plant.state(plantId);
+            expect(state1.lastDeadPruned.toString()).to.equal("0");
+            expect(state1.lastFrailty.toString()).to.equal(hre.ethers.utils.parseEther("1").toString());
+
+            await hre.ethers.provider.send("evm_increaseTime", [600]);
+            await plant.water(plantId);
+            await hre.ethers.provider.send("evm_increaseTime", [1200]);
+            await plant.water(plantId);
+            await hre.ethers.provider.send("evm_increaseTime", [3600]);
             const pruneTx = await plant.prune(plantId);
             const pruneReceipt = await pruneTx.wait();
             const state = await plant.state(plantId);
-            // expect no change
-            expect(state.lastDeadPruned.toString()).to.equal("0");
+            // expect a small increase
+            expect(parseFloat(hre.ethers.utils.formatEther(state.lastDeadPruned))).to.be.above(0);
             expect(state.lastFrailty.toString()).to.equal(hre.ethers.utils.parseEther("1").toString());
+        });
+    });
+
+    describe("die", () => {
+
+        it("should make a plant die", async () => {
+            const { user1, plant, fruit } = await setup();
+            const tx = await plant.buy();
+            const receipt = await tx.wait();
+            const plantId = receipt.events.find(e => e.event === "PlantCreationStarted").args["plantId"];
+            const random = hre.ethers.BigNumber.from(crypto.randomBytes(32));
+            await expect(plant.doFulfillRandomness(plantId, random, { gasLimit: 206000 + 22086 })).to.emit(plant, "Transfer").withArgs(hre.ethers.constants.AddressZero, user1.address, plantId);
+
+            // expect no change at first
+            const pruneTx1 = await plant.prune(plantId);
+            await pruneTx1.wait();
+            const state1 = await plant.state(plantId);
+            expect(state1.lastDeadPruned.toString()).to.equal("0");
+            expect(state1.lastFrailty.toString()).to.equal(hre.ethers.utils.parseEther("1").toString());
+
+            await hre.ethers.provider.send("evm_increaseTime", [3600]);
+            const pruneTx2 = await plant.prune(plantId);
+            //await plant.water(plantId);
+            await hre.ethers.provider.send("evm_increaseTime", [3600]);
+            const pruneTx3 = await plant.prune(plantId);
+            //await plant.water(plantId);
+            await hre.ethers.provider.send("evm_increaseTime", [7200]);
+            const pruneTx4 = await plant.prune(plantId);
+            //await plant.water(plantId);
+            await hre.ethers.provider.send("evm_increaseTime", [7200]);
+            const pruneTx = await plant.prune(plantId);
+            const pruneReceipt = await pruneTx.wait();
+            const state = await plant.state(plantId);
+            expect(parseFloat(hre.ethers.utils.formatEther(state.lastNormalBranch))).to.be.below(1);
+            expect(state.isAlive).to.be.false;
         });
     });
 

@@ -58,6 +58,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
          */
         uint32 dna;
         // Plant properties
+        bool isAlive;
         uint256 lastFrailty; // as wad
         uint256 lastNormalBranch; // as wad
         uint256 lastWeakBranch; // as wad
@@ -109,6 +110,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         requestRandomNumberFor(counter);
         // Initialize every plant state properties that don't use directly or indirectly the dna
         PlantState storage plant = plantStates[counter];
+        plant.isAlive = true;
         plant.lastFrailty = ONE;
         plant.lastNormalBranch = ONE;
         plant.lastWaterUseRate = waterUseRate(ONE, plant.lastWeakBranch, plant.lastDeadBranch);
@@ -271,6 +273,9 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
               int256 newNormalBranchGrowth = normalBranchGrowth(newWetGrowth, newWetWeaken, newWetStrengthen, newDryWeaken, p.lastFrailty);
               // Cannot be less than 0
               p.lastNormalBranch = Math.or0(Math.toInt256(p.lastNormalBranch) + newNormalBranchGrowth);
+              if (p.lastNormalBranch < ONE) {
+                  p.isAlive = false;
+              }
             }
             {
               uint256 newDeadBranchGrowth = deadBranchGrowth(traitFactor(Trait.DIE, p.dna), ticks, p.lastWeakBranch);
