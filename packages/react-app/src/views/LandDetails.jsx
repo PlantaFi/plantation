@@ -173,19 +173,25 @@ function IsOwner({ ownerAddress, address, landTokenId, readContracts, writeContr
   );
 }
 
-export default function LandDetail({ plantId, landTokenId, ownerAddress, readContracts, writeContracts, address, tx }) {
-  let isPlanted = false;
-  let isDisplayBtn = false;
+export default function LandDetail({
+  plantId,
+  isMinted,
+  isPlanted,
+  landTokenId,
+  ownerAddress,
+  readContracts,
+  writeContracts,
+  address,
+  tx,
+}) {
   const landDetails = useContractReader(readContracts, "Land", "landDetailsByDistance", [landTokenId, 0]);
 
-  if (ownerAddress == 0x0000000000000000000000000000000000000000) {
-    isDisplayBtn = true;
-  }
-
   console.log("plantId " + plantId);
-  if (plantId != 0x00) {
-    isPlanted = true;
-  }
+  console.log("isMinted " + isMinted);
+  console.log("isPlanted " + isPlanted);
+  // if (plantId != 0x00) {
+  //   isPlanted = true;
+  // }
 
   console.log("landDetails " + landDetails);
   return (
@@ -209,10 +215,10 @@ export default function LandDetail({ plantId, landTokenId, ownerAddress, readCon
         <h6>{landDetails ? <Getcoordination coordination={landDetails[0][0]} /> : "loading..."}</h6>
         <br />
         <h6>
-          {isDisplayBtn ? (
-            <BuyLand writeContracts={writeContracts} landTokenId={landTokenId} address={address} tx={tx} />
-          ) : (
+          {isMinted ? (
             "Owner: " + ownerAddress
+          ) : (
+            <BuyLand writeContracts={writeContracts} landTokenId={landTokenId} address={address} tx={tx} />
           )}
         </h6>
         <br />
