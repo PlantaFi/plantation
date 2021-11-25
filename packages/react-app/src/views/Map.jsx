@@ -33,6 +33,8 @@ function MapDesign({
   setPlantId,
   setLandTokenId,
   setOwnerAddress,
+  setIsMinted,
+  setIsPlanted,
 }) {
   let maxArrayLength = maxArray({ distance });
   if (distance == 16) {
@@ -68,8 +70,10 @@ function MapDesign({
             onClick={() => {
               console.log("landId " + distanceInfo[0][i]);
               setLandTokenId(distanceInfo[0][i]);
-              setPlantId(distanceInfo[4][i]._hex);
               setOwnerAddress(distanceInfo[1][i]);
+              setIsMinted(distanceInfo[2][i]);
+              setIsPlanted(distanceInfo[3][i]);
+              setPlantId(distanceInfo[4][i]._hex);
             }}
             to="/landdetails/"
           >
@@ -99,6 +103,8 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
   const [currentx, setCurrentx] = useState(16);
   const [currenty, setCurrenty] = useState(16);
   const [plantId, setPlantId] = useState();
+  const [isMinted, setIsMinted] = useState();
+  const [isPlanted, setIsPlanted] = useState();
   const [landTokenId, setLandTokenId] = useState();
   const [ownerAddress, setOwnerAddress] = useState();
 
@@ -132,13 +138,24 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               }}
             >
               <h1>Plantaland World Map</h1>
-              <div style={{ /*overflow: "scroll scroll", height: 550,*/ paddingTop: 50, textAlign: "center", backgroundColor: '#436ee7' }}>
+              <div
+                style={{
+                  /*overflow: "scroll scroll", height: 550,*/ paddingTop: 50,
+                  textAlign: "center",
+                  backgroundColor: "#436ee7",
+                }}
+              >
                 <div>
-                  <button type="button" style={{ margin: 10 }} class="nes-btn"
+                  <button
+                    type="button"
+                    style={{ margin: 10 }}
+                    class="nes-btn"
                     onClick={() => {
                       if (currentx > 4) setCurrentx(currentx - 4);
                     }}
-                  >North</button>
+                  >
+                    North
+                  </button>
                 </div>
                 <div
                   style={{
@@ -149,11 +166,16 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     alignItems: "center",
                   }}
                 >
-                  <button type="button" style={{ margin: 10 }} class="nes-btn"
+                  <button
+                    type="button"
+                    style={{ margin: 10 }}
+                    class="nes-btn"
                     onClick={() => {
                       if (currenty > 4) setCurrenty(currenty - 4);
                     }}
-                  >&lt; West</button>
+                  >
+                    &lt; West
+                  </button>
                 </div>
                 <div
                   style={{
@@ -163,32 +185,58 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     alignItems: "center",
                   }}
                 >
-                  <button type="button" style={{ margin: 10 }} class="nes-btn"
+                  <button
+                    type="button"
+                    style={{ margin: 10 }}
+                    class="nes-btn"
                     onClick={() => {
                       if (currenty < 28) setCurrenty(currenty + 4);
                     }}
-                  >East &gt;</button>
+                  >
+                    East &gt;
+                  </button>
                 </div>
-                <div style={{border: "4px solid #54dfff", padding: 4, width: 342, display: 'inline-block', backgroundColor: 'black'}}> <div style={{border: "4px solid lightgray", padding: 4, backgroundColor: 'black'}}> <div style={{border: "4px solid gray", padding: 4, backgroundColor: 'black'}}>
-                {landinfodistance ? (
-                  <MapDesign
-                    distanceInfo={landinfodistance}
-                    distance={distance}
-                    readContracts={readContracts}
-                    writeContracts={writeContracts}
-                    setPlantId={setPlantId}
-                    setLandTokenId={setLandTokenId}
-                    setOwnerAddress={setOwnerAddress}
-                  />
-                ) : (
-                  "loading.."
-                )}
-                </div> </div> </div>
-                <button type="button" style={{ margin: 10 }} class="nes-btn"
+                <div
+                  style={{
+                    border: "4px solid #54dfff",
+                    padding: 4,
+                    width: 342,
+                    display: "inline-block",
+                    backgroundColor: "black",
+                  }}
+                >
+
+                  <div style={{ border: "4px solid lightgray", padding: 4, backgroundColor: "black" }}>
+
+                    <div style={{ border: "4px solid gray", padding: 4, backgroundColor: "black" }}>
+                      {landinfodistance ? (
+                        <MapDesign
+                          distanceInfo={landinfodistance}
+                          distance={distance}
+                          readContracts={readContracts}
+                          writeContracts={writeContracts}
+                          setPlantId={setPlantId}
+                          setIsMinted={setIsMinted}
+                          setIsPlanted={setIsPlanted}
+                          setLandTokenId={setLandTokenId}
+                          setOwnerAddress={setOwnerAddress}
+                        />
+                      ) : (
+                        "loading.."
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  style={{ margin: 10 }}
+                  class="nes-btn"
                   onClick={() => {
                     if (currentx < 28) setCurrentx(currentx + 4);
                   }}
-                >South</button>
+                >
+                  South
+                </button>
               </div>
             </div>
           </div>
@@ -198,6 +246,8 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
             <Route path="/landdetails">
               <LandDetails
                 plantId={plantId}
+                isMinted={isMinted}
+                isPlanted={isPlanted}
                 landTokenId={landTokenId}
                 ownerAddress={ownerAddress}
                 readContracts={readContracts}
