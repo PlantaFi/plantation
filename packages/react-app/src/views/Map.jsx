@@ -154,7 +154,6 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     type="text"
                     icon={<LeftOutlined />}
                     onClick={() => {
-                      refreshPage();
                       if (currenty > 4) setCurrenty(currenty - 4);
                     }}
                   />
