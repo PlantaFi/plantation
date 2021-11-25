@@ -431,25 +431,6 @@ function App(props) {
   }
 
   let title = "";
-  title = (
-    <div
-      style={{
-        textAlign: "center",
-      }}
-    >
-      <Title mark>
-        <span
-          className="buchs-long-dark"
-          style={{
-            fontFamily: "P0T-NOoDLE",
-            padding: 12,
-          }}
-        >
-          plantation 1.0
-        </span>
-      </Title>
-    </div>
-  );
 
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
