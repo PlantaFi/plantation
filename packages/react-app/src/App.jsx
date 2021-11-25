@@ -269,7 +269,9 @@ function App(props) {
   const purpose = useContractReader(readContracts, "YourContract", "purpose");
 
   // 📟 Listen for broadcast events
-  const setPurposeEvents = useEventListener(readContracts, "YourContract", "SetPurpose", localProvider, 1);
+  const setPurposeEvents = useEventListener(readContracts, "Plant", "Transfer", localProvider, 1);
+
+    const setTransferEvents = useEventListener(readContracts, "Plant", "Transfer", localProvider, 1);
 
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -593,7 +595,7 @@ function App(props) {
               writeContracts={writeContracts}
               readContracts={readContracts}
               purpose={purpose}
-              setPurposeEvents={setPurposeEvents}
+              setTransferEvents={setTransferEvents}
             />
           </Route>
           <Route path="/map">

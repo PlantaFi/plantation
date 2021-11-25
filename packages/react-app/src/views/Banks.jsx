@@ -11,6 +11,7 @@ import {
   useUserProviderAndSigner,
 } from "eth-hooks";
 
+let plantsCount = 0;
 function DisplayApproveBtn({
   address,
   readContracts,
@@ -23,14 +24,14 @@ function DisplayApproveBtn({
   const allowanceEther = utils.formatEther(fruitAllowance);
   const [approveBtnStr, setApproveBtnStr] = useState("Approve");
   let displayBtn = true;
-  console.log("allowanceEther "+Number(allowanceEther));
+  console.log("allowanceEther " + Number(allowanceEther));
   if (Number(allowanceEther) > 0) {
     displayBtn = false;
   }
-  console.log("displayBtn "+ displayBtn);
+  console.log("displayBtn " + displayBtn);
   return (
     <div>
-      {displayBtn ?
+      {displayBtn ? (
         <Button
           style={{ marginTop: 8, marginBottom: 8 }}
           onClick={async () => {
@@ -39,7 +40,7 @@ function DisplayApproveBtn({
             const result = tx(
               writeContracts.Fruit.approve(
                 plantAddress,
-                '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+                "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
               ),
               update => {
                 console.log("📡 Transaction Update:", update);
@@ -64,9 +65,9 @@ function DisplayApproveBtn({
         >
           {approveBtnStr}
         </Button>
-       :
+      ) : (
         setDisplayBuyPlantBtn(true)
-      }
+      )}
     </div>
   );
 }
@@ -93,7 +94,7 @@ function GetApproveFruit({ address, readContracts, plantAddress, setDisplayBuyPl
   );
 }
 
-function Shop({ address, tx, readContracts, writeContracts }) {
+function Shop({ address, tx, readContracts, writeContracts, setTransferEvents }) {
   const [buyPlantBtnStr, setBuyPlantBtnStr] = useState("Buy plants");
   const [buyFruitBtnStr, setBuyFruitBtnStr] = useState("Get Free Fruits");
   const [displayBuyPlantBtn, setDisplayBuyPlantBtn] = useState(false);
@@ -212,7 +213,10 @@ function Shop({ address, tx, readContracts, writeContracts }) {
             console.log("awaiting metamask/web3 confirm result...", result);
             console.log(await result);
             setBuyPlantBtnStr("Buy plants");
-            setBuyPlantStr("Succed");
+            if (setTransferEvents.length > plantsCount) {
+              setBuyPlantStr("Succed");
+            }
+            plantsCount = setTransferEvents.length;
           }}
         >
           {buyPlantBtnStr}
@@ -224,9 +228,10 @@ function Shop({ address, tx, readContracts, writeContracts }) {
     </div>
   );
 }
+
 export default function Banks({
   purpose,
-  setPurposeEvents,
+  setTransferEvents,
   address,
   mainnetProvider,
   localProvider,
@@ -244,12 +249,21 @@ export default function Banks({
 
   const fruitSupply = useContractReader(readContracts, "Fruit", "totalSupply");
 
+  console.log("setTransferEvents " + setTransferEvents.length + " " + plantsCount);
+  // plantsCount = ;
+
   return (
     <div>
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
-      <Shop readContracts={readContracts} writeContracts={writeContracts} tx={tx} address={address} />
+      <Shop
+        readContracts={readContracts}
+        writeContracts={writeContracts}
+        tx={tx}
+        address={address}
+        setTransferEvents={setTransferEvents}
+      />
 
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
