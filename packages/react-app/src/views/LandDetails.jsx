@@ -216,7 +216,7 @@ export default function LandDetail({
         <div className="nes-container is-rounded is-dark with-title">
           <p className="title">Chosen location</p>
           <div style={{ display: "block", width: "100%" }}>
-            <div style={{ width: "50%", display: "inline-block" /*float: "left"*/ }}>
+            <div style={{ width: "50%", display: "inline-block", verticalAlign: 'top'  }}>
               <div className="nes-container is-rounded is-dark" style={{ width: "100%", textAlign: "left" }}>
                 {isMinted ? (
                   <span>
@@ -250,7 +250,7 @@ export default function LandDetail({
                 </span>
               </div>
             </div>
-            <div style={{ width: "50%", display: "inline-block" /*float: "left"*/ }}>
+            <div style={{ width: "50%", display: "inline-block", verticalAlign: 'top' }}>
               {(() => {
                 const id = landTokenId;
                 const range = Object.keys([...Array(32)]);
