@@ -726,7 +726,7 @@ function App(props) {
           </Route>
         </Switch>
       </BrowserRouter>
-      <ThemeSwitch />
+    
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
       <div
         style={{

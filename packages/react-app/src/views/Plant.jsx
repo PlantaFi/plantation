@@ -100,7 +100,7 @@ const SpeciesFruitImgOffsets = {
 };
 function calcTreePos(species, treeState, fruitCount) {
   // XXX temp
-return '0 0';
+  return "0 0";
   // XXX quick hack, all dead trees look the same
   if (TreeStages[treeState] == "DEAD") {
     return "0 -896px";
@@ -122,8 +122,9 @@ const getTreeStyle = (species, treeState, fruitCount) => {
     objectPosition: calcTreePos(species, treeState, fruitCount),
     width: 96,
     height: 128,
-/*    position: "absolute",*/
-    top: /*-64*/ 0, margin: 50,
+    /*    position: "absolute",*/
+    top: /*-64*/ 0,
+    margin: 50,
   };
 };
 
@@ -171,6 +172,25 @@ function PlantImage({ species, treeState, fruit }) {
   return (
     <div>
       <img width={200} height={200} src={fruitTreePng} style={getTreeStyle(species, treeState, fruit)} />
+    </div>
+  );
+}
+
+function DisplayPlantImage({ plantDNA, lastNormalBranch, lastWeakBranch, lastDeadBranch, lastDeadPruned }) {
+  const plantGene = parseGenes(plantDNA.toString(2).padStart(32, "0"));
+  const sum =
+    Number(utils.formatEther(lastNormalBranch)) +
+    Number(utils.formatEther(lastWeakBranch)) +
+    Number(utils.formatEther(lastDeadBranch)) +
+    Number(utils.formatEther(lastDeadPruned));
+  const treeState = CountTreeStage({ sum });
+  console.log("sum " + sum);
+  console.log("treeState " + treeState);
+
+  return (
+    <div>
+      {" "}
+      <PlantImage species={plantGene.species} treeState={treeState} fruit={plantGene.fruit} />
     </div>
   );
 }
@@ -233,6 +253,70 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
         >
           Approve Fertilize
         </button>
+      )}
+    </div>
+  );
+}
+
+/*
+plantId={plantId}
+             plantDNA={plantState[0]}
+             isAlive={plantState[1]}
+             geo={plantState[12]}
+             waterLevel={plantState[7]}
+             lastNormalBranch={plantState[3]._hex}
+             lastWeakBranch={plantState[4]._hex}
+             lastDeadBranch={plantState[5]._hex}
+             lastDeadPruned={plantState[6]._hex}
+
+*/
+
+function CountWaterLevel({ waterLevel }) {
+  return (
+    <div>
+      Water Level:{utils.formatEther(waterLevel)}
+      <progress className="nes-progress is-primary" value={utils.formatEther(waterLevel)} max="100"></progress>
+    </div>
+  );
+}
+
+function DisplayBurn({ isAlive }) {
+  return (
+    <div>
+      {isAlive ? (
+        <div>
+          <h4 style={{ color: "lightgreen" }}>This Plant is Alive!</h4>
+        </div>
+      ) : (
+        <div>
+          <span>This plant is dead!</span>
+          <button
+            type="button"
+            style={{ margin: 10 }}
+            class="nes-btn is-error"
+            onClick={async () => {
+              const result = tx(writeContracts.Land.handleBurn(landTokenId), update => {
+                console.log("📡 Transaction Update:", update);
+                if (update && (update.status === "confirmed" || update.status === 1)) {
+                  console.log(" 🍾 Transaction " + update.hash + " finished!");
+                  console.log(
+                    " ⛽️ " +
+                      update.gasUsed +
+                      "/" +
+                      (update.gasLimit || update.gas) +
+                      " @ " +
+                      parseFloat(update.gasPrice) / 1000000000 +
+                      " gwei",
+                  );
+                }
+              });
+              console.log("awaiting metamask/web3 confirm result...", result);
+              console.log(await result);
+            }}
+          >
+            Burn!
+          </button>
+        </div>
       )}
     </div>
   );
@@ -304,29 +388,8 @@ function PlantDetails({
 // <h3>{plantGene.die == 0 ? "Alive" : "Dead!"}</h3>
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
-  const [loadingunplanted, setLoadingunplanted] = useState(true);
-
-  const { Meta } = Card;
   const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
   console.log(" plantState " + plantState);
-  if (!plantState) return null;
-  console.log(utils.parseEther("1000"));
-
-  
-  const              plantDNA=plantState[0];
-  const plantGene = parseGenes(plantDNA.toString(2).padStart(32, "0"));
-  const               lastNormalBranch=plantState[3]._hex
-  const               lastWeakBranch=plantState[4]._hex
-  const               lastDeadBranch=plantState[5]._hex
-  const               lastDeadPruned=plantState[6]._hex
-  const sum =
-    Number(utils.formatEther(lastNormalBranch)) +
-    Number(utils.formatEther(lastWeakBranch)) +
-    Number(utils.formatEther(lastDeadBranch)) +
-    Number(utils.formatEther(lastDeadPruned));
-  const treeState = CountTreeStage({ sum });
-
-
   return (
     <div>
       {/*
@@ -336,167 +399,58 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
       <div className="nes-container is-rounded is-dark with-title">
         <p className="title">Plant</p>
 
-        <div style={{width: 320, height: 200, position: 'absolute', left: 100, top: 100}}>
-
-          <div style={{backgroundColor: 'white', padding: 32}}>
+        <div style={{ width: 320, height: 200, position: "absolute", left: 100, top: 100 }}>
+          <div style={{ backgroundColor: "white", padding: 32 }}>
             <div className="nes-container is-rounded with-title">
-              <p className="title" style={{color: 'black'}}>Species</p>
-              <PlantImage species={plantGene.species} treeState={treeState} fruit={plantGene.fruit} />
+              <p className="title" style={{ color: "black" }}>
+                Species
+              </p>
+              {plantState ? (
+                <DisplayPlantImage
+                  plantDNA={plantState[0]}
+                  lastNormalBranch={plantState[3]._hex}
+                  lastWeakBranch={plantState[4]._hex}
+                  lastDeadBranch={plantState[5]._hex}
+                  lastDeadPruned={plantState[6]._hex}
+                />
+              ) : (
+                "loading..."
+              )}
             </div>
           </div>
-      
-        </div><div style={{display: 'inline-block', width: '40%', margin: '40px'}}>
-        <div style={{position: 'relative', top: -40}}>
+        </div>
+        <div style={{ display: "inline-block", width: "40%", margin: "40px" }}>
+          <div style={{ position: "relative", top: -40 }}>
+            <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
 
-          <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
+            <div className="nes-container is-rounded is-dark">
+              <span>
+                Landowner: <Address address={address} /*ensProvider={mainnetProvider}*/ fontSize={16} />
+              </span>
+            </div>
 
-          <div className="nes-container is-rounded is-dark">
-            <span>Landowner: <Address address={address} /*ensProvider={mainnetProvider}*/ fontSize={16} /></span>
+            <div className="nes-container is-rounded is-dark">
+              <span>Coordinates: {plantState ? <Getcoordination coordination={plantState[12]} /> : "loading..."}</span>
+            </div>
+
+            <div className="nes-container is-rounded is-dark" style={{}}>
+              {plantState ? <DisplayBurn isAlive={plantState[1]} /> : "loading"}
+            </div>
           </div>
-
-          <div className="nes-container is-rounded is-dark">
-            <span>
-            Coordinates: (-1, -2)
+        </div>
+        <div style={{ display: "inline-block", width: "50%" }}>
+          <div
+            className="nes-container is-rounded notis-dark"
+            style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
+          >
+            <span style={{ color: "black" }}>
+              {plantState ? <CountWaterLevel waterLevel={plantState[7]} /> : "loading.."}
             </span>
-          </div>
 
-          <div className="nes-container is-rounded is-dark" style={{}}>
-            <span>
-            This plant is dead!
-            </span>
-            <button
-            type="button"
-            style={{ margin: 10 }}
-            className="nes-btn is-error"
-            >
-            Burn!
-            </button>
-          </div>
-
-        </div>
-      </div><div style={{display: 'inline-block', width: '50%'}}>
-
-        <div className="nes-container is-rounded notis-dark" style={{margin: '10px', width: '97%', textAlign: 'left', backgroundColor: 'white'}}>
-
-          <span style={{color: 'black'}}>Water Level: 100</span>
-          <progress className="nes-progress is-primary" value="50" max="100"></progress>
-          <button
-            type="button"
-            style={{ margin: 10 }}
-            className="nes-btn is-primary"
-          >
-            Water
-          </button>
-      
-        </div><div className="nes-container is-rounded notis-dark" style={{margin: '10px', width: '97%', textAlign: 'left', backgroundColor: 'white'}}>
-
-          <span style={{color: 'black'}}>Fruit: 75 / 100</span>
-          <progress className="nes-progress " value="50" max="100"></progress>
-          <button
-            type="button"
-            style={{ margin: 10 }}
-            className="nes-btn "
-          >
-            Fertilize
-          </button>
-          <button
-            type="button"
-            style={{ margin: 10 }}
-            className="nes-btn "
-          >
-            Harvest
-          </button>
-
-        </div><div className="nes-container is-rounded notis-dark" style={{margin: '10px', width: '97%', textAlign: 'left', backgroundColor: 'white'}}>
-
-          <span style={{color: 'black'}}>Normal Branches: 100</span>
-          <progress className="nes-progress is-success" value="50" max="100"></progress>
-          <span style={{color: 'black'}}>Weak Branches: 100</span>
-          <progress className="nes-progress is-warning" value="30" max="100"></progress>
-          <span style={{color: 'black'}}>Dead Branches: 100</span>
-          <progress className="nes-progress is-error" value="10" max="100"></progress>
-          <span style={{color: 'black'}}>Pruned Branches: 100</span>
-          <progress className="nes-progress is-pattern" value="50" max="100"></progress>
-          <button
-            type="button"
-            style={{ margin: 10 }}
-            className="nes-btn is-normal"
-            onClick={async () => {
-              const result = tx(writeContracts.Plant.prune(plantId), update => {
-                console.log("📡 Transaction Update:", update);
-                if (update && (update.status === "confirmed" || update.status === 1)) {
-                  console.log(" 🍾 Transaction " + update.hash + " finished!");
-                  console.log(
-                    " ⛽️ " +
-                      update.gasUsed +
-                      "/" +
-                      (update.gasLimit || update.gas) +
-                      " @ " +
-                      parseFloat(update.gasPrice) / 1000000000 +
-                      " gwei",
-                  );
-                }
-              });
-              console.log("awaiting metamask/web3 confirm result...", result);
-              console.log(await result);
-            }}
-          >
-            Prune
-          </button>
-        </div>
-
-        </div>
-      </div>
-
-      <div
-        className="nes-container is-rounded"
-        style={{
-          backgroundColor: "darkgray",
-          padding: 16,
-          width: 400,
-          margin: "auto",
-          marginTop: 20,
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <h2>Owner:</h2>
-          {plantState ? (
-            <PlantDetails
-              plantId={plantId}
-              plantDNA={plantState[0]}
-              isAlive={plantState[1]}
-              geo={plantState[12]}
-              waterLevel={plantState[7]}
-              lastNormalBranch={plantState[3]._hex}
-              lastWeakBranch={plantState[4]._hex}
-              lastDeadBranch={plantState[5]._hex}
-              lastDeadPruned={plantState[6]._hex}
-            />
-          ) : (
-            "loading..."
-          )}
-        </div>
-      </div>
-      {/*
-      ⚙️
-    */}
-      <div
-        className="nes-container is-rounded"
-        style={{
-          padding: 16,
-          width: 400,
-          margin: "auto",
-          marginTop: 64,
-          marginBottom: 128,
-          backgroundColor: "#3f9822",
-        }}
-      >
-        <Row>
-          <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
             <button
               type="button"
               style={{ margin: 10 }}
-              className="nes-btn is-success"
+              class="nes-btn is-primary"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.water(plantId), update => {
                   console.log("📡 Transaction Update:", update);
@@ -519,16 +473,31 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             >
               Water
             </button>
-          </Col>
-        </Row>
-        <Row>
-          <Col xs={{ span: 11, offset: 1 }} lg={{ span: 6, offset: 2 }}>
+          </div>
+          <div
+            className="nes-container is-rounded notis-dark"
+            style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
+          >
+            <span style={{ color: "black" }}>Fruit: 75 / 100</span>
+            <progress className="nes-progress " value="50" max="100"></progress>
+            {plantState ? (
+              <GetApproveMatics
+                address={address}
+                plantId={plantId}
+                readContracts={readContracts}
+                plantAddress={readContracts.Plant.address}
+                writeContracts={writeContracts}
+                tx={tx}
+              />
+            ) : (
+              ""
+            )}
             <button
               type="button"
               style={{ margin: 10 }}
-              className="nes-btn is-error"
+              class="nes-btn "
               onClick={async () => {
-                const result = tx(writeContracts.Land.handleBurn(landTokenId), update => {
+                const result = tx(writeContracts.Plant.harvest(plantId), update => {
                   console.log("📡 Transaction Update:", update);
                   if (update && (update.status === "confirmed" || update.status === 1)) {
                     console.log(" 🍾 Transaction " + update.hash + " finished!");
@@ -547,12 +516,21 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
                 console.log(await result);
               }}
             >
-              Burn
+              Harvest
             </button>
-          </Col>
-        </Row>
-        <Row>
-          <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
+          </div>
+          <div
+            className="nes-container is-rounded notis-dark"
+            style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
+          >
+            <span style={{ color: "black" }}>Normal Branches: 100</span>
+            <progress className="nes-progress is-success" value="50" max="100"></progress>
+            <span style={{ color: "black" }}>Weak Branches: 100</span>
+            <progress className="nes-progress is-warning" value="30" max="100"></progress>
+            <span style={{ color: "black" }}>Dead Branches: 100</span>
+            <progress className="nes-progress is-error" value="10" max="100"></progress>
+            <span style={{ color: "black" }}>Pruned Branches: 100</span>
+            <progress className="nes-progress is-pattern" value="50" max="100"></progress>
             <button
               type="button"
               style={{ margin: 10 }}
@@ -579,54 +557,8 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             >
               Prune
             </button>
-          </Col>
-        </Row>
-        <Row>
-          <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            {plantState ? (
-              <GetApproveMatics
-                address={address}
-                plantId={plantId}
-                readContracts={readContracts}
-                plantAddress={readContracts.Plant.address}
-                writeContracts={writeContracts}
-                tx={tx}
-              />
-            ) : (
-              ""
-            )}
-          </Col>
-        </Row>
-        <Row>
-          <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
-            <button
-              type="button"
-              style={{ margin: 10 }}
-              className="nes-btn is-success"
-              onClick={async () => {
-                const result = tx(writeContracts.Plant.harvest(plantId), update => {
-                  console.log("📡 Transaction Update:", update);
-                  if (update && (update.status === "confirmed" || update.status === 1)) {
-                    console.log(" 🍾 Transaction " + update.hash + " finished!");
-                    console.log(
-                      " ⛽️ " +
-                        update.gasUsed +
-                        "/" +
-                        (update.gasLimit || update.gas) +
-                        " @ " +
-                        parseFloat(update.gasPrice) / 1000000000 +
-                        " gwei",
-                    );
-                  }
-                });
-                console.log("awaiting metamask/web3 confirm result...", result);
-                console.log(await result);
-              }}
-            >
-              Harvest
-            </button>
-          </Col>
-        </Row>
+          </div>
+        </div>
       </div>
     </div>
   );
