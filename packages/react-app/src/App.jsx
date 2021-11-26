@@ -562,12 +562,6 @@ function App(props) {
             />
           </Route>
           <Route path="/map">
-            <PlantsList
-              address={address}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-            />
             <Map address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
           </Route>
           <Route path="/hints">
@@ -726,7 +720,7 @@ function App(props) {
           </Route>
         </Switch>
       </BrowserRouter>
-    
+
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
       <div
         style={{
