@@ -42,6 +42,12 @@
   }
 }
 
+@media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+  .App .nes-btn {
+    border-image-repeat: stretch;
+  }
+}
+
 /* credit: http://opengameart.org/users/buch */
 .buchs-square-dark {
     border-style: solid;
