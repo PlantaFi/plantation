@@ -24,7 +24,7 @@ function BuyLand({ writeContracts, landTokenId, address, tx }) {
   return (
     <div>
       <h4 style={{color: 'white'}}>{transactionStatus}</h4>
-      <div>
+      <div style={{backgroundColor: 'antiquewhite', padding: 10}}>
         {btnStatus ? (
           <Button
             style={{ margin: 5 }}
@@ -65,6 +65,7 @@ function BuyLand({ writeContracts, landTokenId, address, tx }) {
         ) : (
           ""
         )}
+        <span style={{color: 'black'}}> Price: ???</span>
       </div>
     </div>
   );
@@ -221,7 +222,7 @@ export default function LandDetail({
       <div className="nes-container is-rounded is-dark with-title">
         <p className="title">Chosen location</p>
         <div style={{display: 'block', width: '100%'}}>
-          <div style={{width: "50", display: "inline-block", float: "left"}}>
+          <div style={{width: "50%", display: "inline-block", /*float: "left"*/}}>
             <div className="nes-container is-rounded is-dark" style={{width: '100%', textAlign: 'left'}}>
               {isMinted ? (
                 <span>Landowner: <Address address={ownerAddress} /*ensProvider={mainnetProvider}*/ fontSize={16} /></span>
@@ -244,7 +245,7 @@ export default function LandDetail({
               }</span>
             </div>
           </div>
-          <div style={{width: "50", display: "inline-block", /*float: "left"*/}}>
+          <div style={{width: "50%", display: "inline-block", /*float: "left"*/}}>
             { (() => {
               const id = landTokenId;
               const range = Object.keys([...Array(32)]);
@@ -270,8 +271,8 @@ export default function LandDetail({
 
                 {isPlanted ? (
                   <div>
-                    <h4>{plantId}</h4>
-                    <Link to="/plant"> plant Details </Link>
+                    <h4 style={{color: 'white'}}>{plantId}</h4>
+                    <Link className='nes-btn is-success' to="/plant"> plant Details </Link>
                   </div>
                 ) : (
                   <IsOwner
