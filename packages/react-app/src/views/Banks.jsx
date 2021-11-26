@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { utils } from "ethers";
 import { Button, Card, Col, Collapse, Space } from "antd";
-import { FruitSwap } from "../components/";
+import { FruitSwap, PlantaWallet } from "../components/";
 
 const _onUpdate = update => {
   console.log("📡 Transaction Update:", update);
@@ -270,6 +270,13 @@ export default function Banks({
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
+
+      {writeContracts.Fruit ? (<PlantaWallet
+        readContracts={readContracts}
+        writeContracts={writeContracts}
+        tx={tx}
+        address={address}
+      />) : ''}
       <Shop
         readContracts={readContracts}
         writeContracts={writeContracts}

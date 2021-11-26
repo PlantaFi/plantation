@@ -31,7 +31,7 @@ function FMaticOut({ fruitIn, readContracts, }) {
   const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(fruitIn)]);
   return (<span>{fmaticOut ? fmtEth(fmaticOut) : '...'}</span>);
 }
-export default function PairSwap({
+export default function FruitSwap({
   address,
   tx,
   readContracts,
