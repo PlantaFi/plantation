@@ -3,6 +3,9 @@ import { Button, List } from "antd";
 import { utils } from "ethers";
 import { useContractReader } from "eth-hooks";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
+import { Address } from "../components";
+
+import fire from "../assets/fire.gif";
 
 function AnalyseData({ plantId }) {
   return;
@@ -20,7 +23,7 @@ function BuyLand({ writeContracts, landTokenId, address, tx }) {
   const [transactionStatus, setTransactionStatus] = useState("Land is Available!");
   return (
     <div>
-      <h4>{transactionStatus}</h4>
+      <h4 style={{color: 'white'}}>{transactionStatus}</h4>
       <div>
         {btnStatus ? (
           <Button
@@ -167,7 +170,7 @@ function IsOwner({ ownerAddress, address, landTokenId, readContracts, writeContr
           tx={tx}
         />
       ) : (
-        <h4>Nothing Planted!</h4>
+        <h4 style={{color: 'white'}}>Nothing Planted!</h4>
       )}
     </div>
   );
@@ -195,12 +198,13 @@ export default function LandDetail({
 
   console.log("landDetails " + landDetails);
   return (
-    <div>
+    <div style={{position:'relative', top: -20}}>
       {/*
         ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
       */}
       <div
         style={{
+          /*
           border: "10px solid #fc8c03",
           borderRadius: "10px",
           padding: 16,
@@ -208,10 +212,83 @@ export default function LandDetail({
           margin: "auto",
           marginTop: 64,
           marginBottom: 64,
-          backgroundColor: "lightgray",
+          */
+          backgroundColor: "#212529",
+          paddingTop: 5,
           textAlign: "center",
         }}
       >
+      <div className="nes-container is-rounded is-dark with-title">
+        <p className="title">Chosen location</p>
+        <div style={{display: 'block', width: '100%'}}>
+          <div style={{width: "50", display: "inline-block", float: "left"}}>
+            <div className="nes-container is-rounded is-dark" style={{width: '100%', textAlign: 'left'}}>
+              {isMinted ? (
+                <span>Landowner: <Address address={ownerAddress} /*ensProvider={mainnetProvider}*/ fontSize={16} /></span>
+              ) : (
+                <BuyLand writeContracts={writeContracts} landTokenId={landTokenId} address={address} tx={tx} />
+              )}
+            </div>
+            
+            <div className="nes-container is-rounded is-dark" style={{width: '100%', textAlign: 'left'}}>
+              <span>Ideal species: {landDetails ? landDetails[1][0] : "Mican..."} </span>
+            </div>
+            <div className="nes-container is-rounded is-dark" style={{width: '100%', textAlign: 'left'}}>
+              <span>Burn Bonus {
+                (() => {
+                  if (!landDetails) { return ''; }
+                  const burns = landDetails[2][0];
+                  const range = Object.keys([...Array(burns + 1)]);
+                  return range.map((idx) => (<img key={'fire-'+idx} src={fire} />))
+                })()
+              }</span>
+            </div>
+          </div>
+          <div style={{width: "50", display: "inline-block", /*float: "left"*/}}>
+            { (() => {
+              const id = landTokenId;
+              const range = Object.keys([...Array(32)]);
+              return (
+              <div className="nes-container is-rounded is-dark with-title" style={{width: '100%', textAlign: 'left'}}>
+                <p className="title">Currently viewing</p>
+                <div className="nes-select" style={{display: "inline-block", width: 150}}>
+                  <span>Latitude:</span>
+                  <select required id="default_select" style={{color: 'black'}}>
+                    {range.map(idx => (<option value={idx} selected={idx == parseInt(id / 32)}>{idx}</option>))}
+                  </select>
+                </div>
+                <div className="nes-select" style={{display: "inline-block", width: 150}}>
+                  <span>Longitude:</span>
+                  <select required id="default_select" style={{color: 'black'}}>
+                    {range.map(idx => (<option value={idx} selected={idx == id % 32}>{idx}</option>))}
+                  </select>
+                </div>
+              </div>
+            );})() }
+              <div className="nes-container is-rounded is-dark without-title" style={{width: '100%', textAlign: 'left'}}>
+                <div>
+
+                {isPlanted ? (
+                  <div>
+                    <h4>{plantId}</h4>
+                    <Link to="/plant"> plant Details </Link>
+                  </div>
+                ) : (
+                  <IsOwner
+                    ownerAddress={ownerAddress}
+                    address={address}
+                    landTokenId={landTokenId}
+                    readContracts={readContracts}
+                    writeContracts={writeContracts}
+                    tx={tx}
+                  />
+                )}
+                </div>
+              </div>
+          </div>
+        </div>
+      </div></div>
+    {/*
         <h6>{landDetails ? <Getcoordination coordination={landDetails[0][0]} /> : "loading..."}</h6>
         <br />
         <h6>
@@ -243,7 +320,7 @@ export default function LandDetail({
         <h6>Land Type: {landDetails ? landDetails[1][0] : "loading..."}</h6>
         <br />
         <h6>Burn Power:{landDetails ? landDetails[2][0] : "loading..."}</h6>
-      </div>
+    */}
     </div>
   );
 }

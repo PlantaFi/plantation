@@ -130,8 +130,8 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               style={{
                 /*border: "10px solid #fc8c03",
                 borderRadius: "10px",*/
-                padding: 16,
-                width: 720,
+                padding: 0,
+                width: '100%',
                 margin: "auto",
                 marginTop: 64,
                 backgroundColor: "white",
@@ -147,99 +147,103 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                       width: 120,
                 }}
                 />
-                <h3 style={{color: 'white', marginTop: -20}}>Location: ({currentx}, {currenty})</h3>
-                <div>
-                  <button
-                    type="button"
-                    style={{ margin: 10 }}
-                    class="nes-btn"
-                    onClick={() => {
-                      if (currentx > 4) setCurrentx(currentx - 4);
+                <div style={{width: 650, margin: 'auto'}}>
+                  <div>
+                    <button
+                      type="button"
+                      style={{ margin: 10 }}
+                      class="nes-btn"
+                      onClick={() => {
+                        if (currentx > 4) setCurrentx(currentx - 4);
+                      }}
+                    >
+                      North
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      width: 140,
+                      height: 300,
+                      float: "left",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
-                    North
-                  </button>
-                </div>
-                <div
-                  style={{
-                    width: 150,
-                    height: 300,
-                    float: "left",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <button
-                    type="button"
-                    style={{ margin: 10 }}
-                    class="nes-btn"
-                    onClick={() => {
-                      if (currenty > 4) setCurrenty(currenty - 4);
+                    <button
+                      type="button"
+                      style={{ margin: 10 }}
+                      class="nes-btn"
+                      onClick={() => {
+                        if (currenty > 4) setCurrenty(currenty - 4);
+                      }}
+                    >
+                      &lt; West
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      height: 300,
+                      float: "right",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
-                    &lt; West
-                  </button>
-                </div>
-                <div
-                  style={{
-                    height: 300,
-                    float: "right",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <button
-                    type="button"
-                    style={{ margin: 10 }}
-                    class="nes-btn"
-                    onClick={() => {
-                      if (currenty < 28) setCurrenty(currenty + 4);
+                    <button
+                      type="button"
+                      style={{ margin: 10 }}
+                      class="nes-btn"
+                      onClick={() => {
+                        if (currenty < 28) setCurrenty(currenty + 4);
+                      }}
+                    >
+                      East &gt;
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      border: "4px solid #54dfff",
+                      padding: 4,
+                      width: 342,
+                      display: "inline-block",
+                      backgroundColor: "black",
                     }}
                   >
-                    East &gt;
-                  </button>
-                </div>
-                <div
-                  style={{
-                    border: "4px solid #54dfff",
-                    padding: 4,
-                    width: 342,
-                    display: "inline-block",
-                    backgroundColor: "black",
-                  }}
-                >
 
-                  <div style={{ border: "4px solid lightgray", padding: 4, backgroundColor: "black" }}>
+                    <div style={{ border: "4px solid lightgray", padding: 4, backgroundColor: "black" }}>
 
-                    <div style={{ border: "4px solid gray", padding: 4, backgroundColor: "black" }}>
-                      {landinfodistance ? (
-                        <MapDesign
-                          distanceInfo={landinfodistance}
-                          distance={distance}
-                          readContracts={readContracts}
-                          writeContracts={writeContracts}
-                          setPlantId={setPlantId}
-                          setIsMinted={setIsMinted}
-                          setIsPlanted={setIsPlanted}
-                          setLandTokenId={setLandTokenId}
-                          setOwnerAddress={setOwnerAddress}
-                        />
-                      ) : (
-                        "loading.."
-                      )}
+                      <div style={{ border: "4px solid gray", padding: 4, backgroundColor: "black" }}>
+                        {landinfodistance ? (
+                          <MapDesign
+                            distanceInfo={landinfodistance}
+                            distance={distance}
+                            readContracts={readContracts}
+                            writeContracts={writeContracts}
+                            setPlantId={setPlantId}
+                            setIsMinted={setIsMinted}
+                            setIsPlanted={setIsPlanted}
+                            setLandTokenId={setLandTokenId}
+                            setOwnerAddress={setOwnerAddress}
+                          />
+                        ) : (
+                          "loading.."
+                        )}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    style={{ margin: 10 }}
+                    class="nes-btn"
+                    onClick={() => {
+                      if (currentx < 28) setCurrentx(currentx + 4);
+                    }}
+                  >
+                    South
+                  </button>
+                  <div style={{margin: 20}}>
+                    <h3 style={{color: 'white', marginTop: -20}}>Centered: ({currentx}, {currenty})</h3>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  style={{ margin: 10 }}
-                  class="nes-btn"
-                  onClick={() => {
-                    if (currentx < 28) setCurrentx(currentx + 4);
-                  }}
-                >
-                  South
-                </button>
               </div>
             </div>
           </div>

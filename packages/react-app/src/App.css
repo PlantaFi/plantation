@@ -26,18 +26,18 @@
 }
 
 @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
-  .nes-container.is-rounded {
+  .App .nes-container.is-rounded, .App .nes-container.is-rounded.is-dark {
     border-image-repeat: stretch;
   }
 }
 @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
-  .nes-balloon {
+  .App .nes-balloon {
     border-image-repeat: stretch;
   }
 }
 
 @media all and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
-  .nes-progress {
+  .App .nes-progress {
     border-image-repeat: stretch;
   }
 }
