@@ -133,13 +133,13 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                 padding: 0,
                 width: '100%',
                 margin: "auto",
-                marginTop: 64,
+                marginTop: 16,
                 backgroundColor: "white",
                 textAlign: "center",
               }}
             >
               <h1>Plantaland World Map</h1>
-              <div style={{ /*overflow: "scroll scroll", height: 550,*/ paddingTop: 50, textAlign: "center", backgroundColor: '#436ee7', position: 'relative' }}>
+              <div style={{ /*overflow: "scroll scroll", height: 550,*/ paddingTop: 20, textAlign: "center", backgroundColor: '#436ee7', position: 'relative' }}>
                 <img src={windrose} style={{
                       position: 'absolute',
                       top: -58,
