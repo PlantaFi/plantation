@@ -517,21 +517,7 @@ function App(props) {
             <span className="nes-text is-primary">
               <Link to="/map"> Map </Link>
             </span>
-            |<span className="nes-text is-disabled"> Help </span>|
-            <span class="nes-text is-disabled">
-
-              <Link to="/land">Help land </Link>
-            </span>
-            |
-            <span class="nes-text is-disabled">
-
-              <Link to="/fruit">Help Fruit </Link>
-            </span>
-            |
-            <span class="nes-text is-disabled">
-
-              <Link to="/plant">Help Plant </Link>
-            </span>
+            |<span className="nes-text is-disabled"> Help </span>
           </p>
         </div>
         <Switch>
@@ -819,8 +805,20 @@ function App(props) {
       <div className="nes-container with-title">
         <p className="title">Footer</p>
         <p>
-          <span class="nes-text is-success">Bank &amp; Shop</span> | <span class="nes-text is-primary">Map</span> |{" "}
-          <span class="nes-text is-disabled">Help</span>{" "}
+          <span class="nes-text is-disabled">
+
+            <a href="/land">Help land </a>
+          </span>
+          |
+          <span class="nes-text is-disabled">
+
+            <a href="/fruit">Help Fruit </a>
+          </span>
+          |
+          <span class="nes-text is-disabled">
+
+            <a href="/plant">Help Plant </a>
+          </span>
         </p>
       </div>
     </div>
