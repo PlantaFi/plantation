@@ -67,7 +67,7 @@ const MAX_UINT256 = "11579208923731619542357098500868790785326998466564056403945
 const FRUIT_PER_MASS = 10;
 
 function Getcoordination({ coordination }) {
-  // console.log("coordination " + coordination);
+  console.log("coordination " + coordination);
   const x = Math.floor(coordination % 32).toString();
   const y = Math.floor(coordination / 32).toString();
   return "(" + y + "," + x + ")";
@@ -145,7 +145,6 @@ function parseGenes(dnaStr) {
   return genes;
 }
 
-
 function CountTreeStage({ sum }) {
   console.log("sum1 " + sum);
   //SEED
@@ -154,14 +153,14 @@ function CountTreeStage({ sum }) {
     //SPROUT
   } else if (sum < 1000) {
     return 1;
-      //BABY
+    //BABY
   } else if (sum < 2000) {
     return 2;
     //TEENAGE
   } else if (sum < 3000) {
     return 3;
-      //ADULT
-  } else  {
+    //ADULT
+  } else {
     return 4;
   }
 }
@@ -174,8 +173,72 @@ function PlantImage({ species, treeState, fruit }) {
   );
 }
 
+function GetApproveMatics({ address, plantId, readContracts, plantAddress, writeContracts, tx }) {
+  const maticAllowance = useContractReader(readContracts, "FMatic", "allowance", [address, plantAddress]);
+  return (
+    <div>
+      {maticAllowance ? (
+        <button
+          type="button"
+          style={{ margin: 10 }}
+          class="nes-btn is-success"
+          onClick={async () => {
+            const result = tx(writeContracts.Plant.fertilize(plantId), update => {
+              console.log("📡 Transaction Update:", update);
+              if (update && (update.status === "confirmed" || update.status === 1)) {
+                console.log(" 🍾 Transaction " + update.hash + " finished!");
+                console.log(
+                  " ⛽️ " +
+                    update.gasUsed +
+                    "/" +
+                    (update.gasLimit || update.gas) +
+                    " @ " +
+                    parseFloat(update.gasPrice) / 1000000000 +
+                    " gwei",
+                );
+              }
+            });
+            console.log("awaiting metamask/web3 confirm result...", result);
+            console.log(await result);
+          }}
+        >
+          Fertilize
+        </button>
+      ) : (
+        <button
+          type="button"
+          style={{ margin: 10 }}
+          class="nes-btn is-success"
+          onClick={async () => {
+            const result = tx(writeContracts.FMatic.approve(plantId), update => {
+              console.log("📡 Transaction Update:", update);
+              if (update && (update.status === "confirmed" || update.status === 1)) {
+                console.log(" 🍾 Transaction " + update.hash + " finished!");
+                console.log(
+                  " ⛽️ " +
+                    update.gasUsed +
+                    "/" +
+                    (update.gasLimit || update.gas) +
+                    " @ " +
+                    parseFloat(update.gasPrice) / 1000000000 +
+                    " gwei",
+                );
+              }
+            });
+            console.log("awaiting metamask/web3 confirm result...", result);
+            console.log(await result);
+          }}
+        >
+          Approve Fertilize
+        </button>
+      )}
+    </div>
+  );
+}
+
 function PlantDetails({
   plantId,
+  isAlive,
   plantDNA,
   geo,
   waterLevel,
@@ -223,9 +286,9 @@ function PlantDetails({
               </h4>
               <h3>Healthy: </h3>
               <h3>weak:{plantGene.weak}</h3>
-              <h3>{plantGene.die == 0 ? "Alive" : "Dead!"}</h3>
+              <h3>{isAlive ? "Alive" : "Dead!"}</h3>
               <h3>Ripe: </h3>
-              <h3>Water: {utils.formatEther(waterLevel)}</h3>
+              <h3>Water:</h3> <h6>{utils.formatEther(waterLevel)}</h6>
               <h3>Fertile:{plantGene.fertile}</h3>
             </Col>
           </Row>
@@ -236,6 +299,7 @@ function PlantDetails({
     </div>
   );
 }
+// <h3>{plantGene.die == 0 ? "Alive" : "Dead!"}</h3>
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
   const [loadingunplanted, setLoadingunplanted] = useState(true);
@@ -244,6 +308,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
 
   const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
   console.log(" plantState " + plantState);
+  console.log(utils.parseEther("1000"));
 
   return (
     <div>
@@ -267,12 +332,13 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <PlantDetails
               plantId={plantId}
               plantDNA={plantState[0]}
-              geo={plantState[11]}
-              waterLevel={plantState[6]}
-              lastNormalBranch={plantState[2]._hex}
-              lastWeakBranch={plantState[3]._hex}
-              lastDeadBranch={plantState[4]._hex}
-              lastDeadPruned={plantState[5]._hex}
+              isAlive={plantState[1]}
+              geo={plantState[12]}
+              waterLevel={plantState[7]}
+              lastNormalBranch={plantState[3]._hex}
+              lastWeakBranch={plantState[4]._hex}
+              lastDeadBranch={plantState[5]._hex}
+              lastDeadPruned={plantState[6]._hex}
             />
           ) : (
             "loading..."
@@ -385,6 +451,22 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
         </Row>
         <Row>
           <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
+            {plantState ? (
+              <GetApproveMatics
+                address={address}
+                plantId={plantId}
+                readContracts={readContracts}
+                plantAddress={readContracts.Plant.address}
+                writeContracts={writeContracts}
+                tx={tx}
+              />
+            ) : (
+              ""
+            )}
+          </Col>
+        </Row>
+        <Row>
+          <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
             <button
               type="button"
               style={{ margin: 10 }}
@@ -417,18 +499,3 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
     </div>
   );
 }
-
-//  // <Spin spinning={false} size="large" tip="Loading Plants...">
-//   <div
-//     style={{
-//       border: "15px solid #b7612c",
-//       borderRadius: "10px",
-//       padding: 16,
-//       width: 400,
-//       margin: "auto",
-//       marginTop: 20,
-//       backgroundColor: "#7f7f7f",
-//     }}
-//   >
-
-// background: "#dd833b", border: "5px solid #e58f43" , borderRadius: '10px',
