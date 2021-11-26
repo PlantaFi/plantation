@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Row, Col, Button, Divider, Space } from "antd";
 import { UpOutlined, DownOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { LandDetails, Plant } from "./";
+import { LandDetails, Plant, PlantsList } from "./";
 // import { PlantSelect } from "../components/";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 
@@ -124,6 +124,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
       <BrowserRouter>
         <nav>
           <div>
+            <PlantsList address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
             {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
@@ -132,7 +133,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                 /*border: "10px solid #fc8c03",
                 borderRadius: "10px",*/
                 padding: 0,
-                width: '100%',
+                width: "100%",
                 margin: "auto",
                 marginTop: 16,
                 backgroundColor: "white",
@@ -140,15 +141,24 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               }}
             >
               <h1>Plantaland World Map</h1>
-              <div style={{ /*overflow: "scroll scroll", height: 550,*/ paddingTop: 20, textAlign: "center", backgroundColor: '#436ee7', position: 'relative' }}>
-                <img src={windrose} style={{
-                      position: 'absolute',
-                      top: -58,
-                      left: -4,
-                      width: 120,
+              <div
+                style={{
+                  /*overflow: "scroll scroll", height: 550,*/ paddingTop: 20,
+                  textAlign: "center",
+                  backgroundColor: "#436ee7",
+                  position: "relative",
                 }}
+              >
+                <img
+                  src={windrose}
+                  style={{
+                    position: "absolute",
+                    top: -58,
+                    left: -4,
+                    width: 120,
+                  }}
                 />
-                <div style={{width: 650, margin: 'auto'}}>
+                <div style={{ width: 650, margin: "auto" }}>
                   <div>
                     <button
                       type="button"
@@ -209,9 +219,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                       backgroundColor: "black",
                     }}
                   >
-
                     <div style={{ border: "4px solid lightgray", padding: 4, backgroundColor: "black" }}>
-
                       <div style={{ border: "4px solid gray", padding: 4, backgroundColor: "black" }}>
                         {landinfodistance ? (
                           <MapDesign
@@ -241,14 +249,16 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                   >
                     South
                   </button>
-                  <div style={{margin: 20}}>
-                    <h3 style={{color: 'white', marginTop: -20}}>Centered: ({currentx}, {currenty})</h3>
+                  <div style={{ margin: 20 }}>
+                    <h3 style={{ color: "white", marginTop: -20 }}>
+                      Centered: ({currentx}, {currenty})
+                    </h3>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-    {/*
+          {/*
               <PlantSelect
                 address={address}
                 tx={tx}

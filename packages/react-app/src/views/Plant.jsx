@@ -189,7 +189,6 @@ function DisplayPlantImage({ plantDNA, lastNormalBranch, lastWeakBranch, lastDea
 
   return (
     <div>
-      {" "}
       <PlantImage species={plantGene.species} treeState={treeState} fruit={plantGene.fruit} />
     </div>
   );
@@ -271,7 +270,7 @@ plantId={plantId}
 
 */
 
-function CountWaterLevel({ waterLevel }) {
+function CountWaterLevel({ waterLevel}) {
   return (
     <div>
       Water Level:{utils.formatEther(waterLevel)}
@@ -280,7 +279,7 @@ function CountWaterLevel({ waterLevel }) {
   );
 }
 
-function DisplayBurn({ isAlive }) {
+function DisplayBurn({ isAlive, tx, writeContracts,  landTokenId }) {
   return (
     <div>
       {isAlive ? (
@@ -322,6 +321,26 @@ function DisplayBurn({ isAlive }) {
   );
 }
 
+function DisplayBranches({ lastNormalBranch, lastWeakBranch, lastDeadBranch, lastDeadPruned }) {
+  return (
+    <div>
+      <span style={{ color: "black" }}>Normal Branches: {utils.formatEther(lastNormalBranch)}</span>
+      <progress className="nes-progress is-success" value={utils.formatEther(lastNormalBranch)} max="100"></progress>
+      <span style={{ color: "black" }}>Weak Branches: {utils.formatEther(lastWeakBranch)}</span>
+      <progress className="nes-progress is-warning" value={utils.formatEther(lastWeakBranch)} max="100"></progress>
+      <span style={{ color: "black" }}>Dead Branches: {utils.formatEther(lastDeadBranch)}</span>
+      <progress className="nes-progress is-error" value={utils.formatEther(lastDeadBranch)} max="100"></progress>
+      <span style={{ color: "black" }}>Pruned Branches: {utils.formatEther(lastDeadPruned)}</span>
+      <progress className="nes-progress is-pattern" value={utils.formatEther(lastDeadPruned)} max="100"></progress>
+    </div>
+  );
+}
+
+function DisplayFruits({flowers}) {
+  return (<div><span style={{ color: "black" }}>Fruit: {utils.formatEther(flowers)} / 100</span>
+  <progress className="nes-progress " value={utils.formatEther(flowers)} max="100"></progress></div>);
+}
+
 function PlantDetails({
   plantId,
   isAlive,
@@ -342,17 +361,6 @@ function PlantDetails({
   const treeState = CountTreeStage({ sum });
   console.log("sum " + sum);
   console.log("treeState " + treeState);
-
-  // console.log("species " + plantGene.species);
-  // console.log("growth " + plantGene.growth);
-  // console.log("mature " + plantGene.mature);
-  // console.log("absorb " + plantGene.absorb);
-  // console.log("fertile " + plantGene.fertile);
-  // console.log("fruit " + plantGene.fruit);
-  // console.log("long " + plantGene.long);
-  // console.log("weak " + plantGene.weak);
-  // console.log("die " + plantGene.die);
-  // console.log("color " + plantGene.color);
 
   return (
     <div>
@@ -434,7 +442,8 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             </div>
 
             <div className="nes-container is-rounded is-dark" style={{}}>
-              {plantState ? <DisplayBurn isAlive={plantState[1]} /> : "loading"}
+              {plantState ? <DisplayBurn isAlive={plantState[1]} tx={tx}
+              writeContracts={writeContracts} landTokenId={plantState[12]}/> : "loading"}
             </div>
           </div>
         </div>
@@ -478,8 +487,8 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            <span style={{ color: "black" }}>Fruit: 75 / 100</span>
-            <progress className="nes-progress " value="50" max="100"></progress>
+          {plantState ? <DisplayFruits flowers={plantState[15]}/>: "loading..."}
+
             {plantState ? (
               <GetApproveMatics
                 address={address}
@@ -495,7 +504,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn "
+              class="nes-btn is-success"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.harvest(plantId), update => {
                   console.log("📡 Transaction Update:", update);
@@ -523,14 +532,16 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            <span style={{ color: "black" }}>Normal Branches: 100</span>
-            <progress className="nes-progress is-success" value="50" max="100"></progress>
-            <span style={{ color: "black" }}>Weak Branches: 100</span>
-            <progress className="nes-progress is-warning" value="30" max="100"></progress>
-            <span style={{ color: "black" }}>Dead Branches: 100</span>
-            <progress className="nes-progress is-error" value="10" max="100"></progress>
-            <span style={{ color: "black" }}>Pruned Branches: 100</span>
-            <progress className="nes-progress is-pattern" value="50" max="100"></progress>
+            {plantState ? (
+              <DisplayBranches
+                lastNormalBranch={plantState[3]._hex}
+                lastWeakBranch={plantState[4]._hex}
+                lastDeadBranch={plantState[5]._hex}
+                lastDeadPruned={plantState[6]._hex}
+              />
+            ) : (
+              "loading..."
+            )}
             <button
               type="button"
               style={{ margin: 10 }}

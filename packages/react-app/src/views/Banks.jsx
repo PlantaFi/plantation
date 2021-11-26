@@ -139,7 +139,7 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
 
       <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
         <p className="title">Fruit</p>
-        {writeContracts.Fruit ? (<FruitSwap 
+        {writeContracts.Fruit ? (<FruitSwap
             address={address}
             tx={tx}
             writeContracts={writeContracts}
@@ -149,8 +149,7 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
       </div>
       <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
         <p className="title">Seed</p>
-        <div>The Plant seed price is {seedPrice ? utils.formatEther(seedPrice) : "loading..."} FRUIT.</div>
-        <div>Right now you have {fruitBalance ? utils.formatEther(fruitBalance) : "loading..."} FRUIT.</div>
+        <div>Fruit Owned:{fruitBalance ? utils.formatEther(fruitBalance) : "loading..."} </div>
         {displayBuyFruitBtn ? (
           <Button
             style={{ marginTop: 8, marginBottom: 8 }}
