@@ -139,12 +139,12 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
 
       <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
         <p className="title">Fruit</p>
-        <FruitSwap 
+        {writeContracts.Fruit ? (<FruitSwap 
             address={address}
             tx={tx}
             writeContracts={writeContracts}
             readContracts={readContracts}
-        />
+        />) : ''}
 
       </div>
       <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
@@ -233,6 +233,11 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
         )}
         <h6>{buyPlantStr}</h6>
         <div>Price: {seedPrice ? utils.formatEther(seedPrice) : "loading..."} FRUIT</div>
+      </div>
+      <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
+        <p className="title">Land</p>
+        Visit the map and choose a location to purchase LAND.
+
       </div>
     </div>
   );
