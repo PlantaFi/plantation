@@ -506,16 +506,12 @@ function App(props) {
         <div className="nes-container with-title">
           <p className="title"> Menu </p>
           <p>
-            <span className="nes-text is-success">
-              <Link to="/"> Plant List </Link>
+            <span className="nes-text is-primary">
+              <Link to="/map"> Map </Link>
             </span>
             |
             <span className="nes-text is-success">
               <Link to="/banks"> Bank &amp; Shop </Link>
-            </span>
-            |
-            <span className="nes-text is-primary">
-              <Link to="/map"> Map </Link>
             </span>
             |<span className="nes-text is-disabled"> Help </span>
           </p>
@@ -566,6 +562,12 @@ function App(props) {
             />
           </Route>
           <Route path="/map">
+            <PlantsList
+              address={address}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+            />
             <Map address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
           </Route>
           <Route path="/hints">
