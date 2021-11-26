@@ -1,6 +1,23 @@
 import React, { useState } from "react";
 import { utils } from "ethers";
 import { Button, Card, Col, Collapse, Space } from "antd";
+import { FruitSwap } from "../components/";
+
+const _onUpdate = update => {
+  console.log("📡 Transaction Update:", update);
+  if (update && (update.status === "confirmed" || update.status === 1)) {
+    console.log(" 🍾 Transaction " + update.hash + " finished!");
+    console.log(
+      " ⛽️ " +
+        update.gasUsed +
+        "/" +
+        (update.gasLimit || update.gas) +
+        " @ " +
+        parseFloat(update.gasPrice) / 1000000000 +
+        " gwei",
+    );
+  }
+}
 
 import {
   useBalance,
@@ -42,21 +59,7 @@ function DisplayApproveBtn({
                 plantAddress,
                 "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
               ),
-              update => {
-                console.log("📡 Transaction Update:", update);
-                if (update && (update.status === "confirmed" || update.status === 1)) {
-                  console.log(" 🍾 Transaction " + update.hash + " finished!");
-                  console.log(
-                    " ⛽️ " +
-                      update.gasUsed +
-                      "/" +
-                      (update.gasLimit || update.gas) +
-                      " @ " +
-                      parseFloat(update.gasPrice) / 1000000000 +
-                      " gwei",
-                  );
-                }
-              },
+              _onUpdate
             );
             console.log("awaiting metamask/web3 confirm result...", result);
             console.log(await result);
@@ -95,7 +98,7 @@ function GetApproveFruit({ address, readContracts, plantAddress, setDisplayBuyPl
 }
 
 function Shop({ address, tx, readContracts, writeContracts, setTransferEvents }) {
-  const [buyPlantBtnStr, setBuyPlantBtnStr] = useState("Buy plants");
+  const [buyPlantBtnStr, setBuyPlantBtnStr] = useState("Buy Seed");
   const [buyFruitBtnStr, setBuyFruitBtnStr] = useState("Get Free Fruits");
   const [displayBuyPlantBtn, setDisplayBuyPlantBtn] = useState(false);
   const [buyPlantStr, setBuyPlantStr] = useState("");
@@ -131,100 +134,106 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
   console.log("seedPrice " + seedPrice);
   console.log("fruitBalance " + fruitBalance);
   return (
-    <div
-      style={{
-        border: "10px solid #fc8c03",
-        borderRadius: "10px",
-        padding: 16,
-        width: 400,
-        margin: "auto",
-        marginTop: 64,
-        backgroundColor: "lightgray",
-      }}
-    >
-      <h6>The Plant Price is {seedPrice ? utils.formatEther(seedPrice) : "loading..."} Friuts.</h6>
-      <h6>Right Now you have {fruitBalance ? utils.formatEther(fruitBalance) : "loading..."} Friuts.</h6>
-      {displayBuyFruitBtn ? (
-        <Button
-          style={{ marginTop: 8, marginBottom: 8 }}
-          onClick={async () => {
-            setBuyFruitBtnStr("loading...");
+    <div className="nes-container is-rounded is-dark with-title">
+      <p className="title">Market</p>
 
-            const result = tx(writeContracts.Fruit.freeFruit(), update => {
-              console.log("📡 Transaction Update:", update);
-              if (update && (update.status === "confirmed" || update.status === 1)) {
-                console.log(" 🍾 Transaction " + update.hash + " finished!");
-                console.log(
-                  " ⛽️ " +
-                    update.gasUsed +
-                    "/" +
-                    (update.gasLimit || update.gas) +
-                    " @ " +
-                    parseFloat(update.gasPrice) / 1000000000 +
-                    " gwei",
-                );
-              }
-            });
-            console.log("awaiting metamask/web3 confirm result...", result);
-            console.log(await result);
-            setBuyFruitBtnStr("Get Free Fruits");
-          }}
-        >
-          {buyFruitBtnStr}
-        </Button>
-      ) : (
-        ""
-      )}
-      <br />
-      {seedPrice ? (
-        <GetApproveFruit
-          address={address}
-          readContracts={readContracts}
-          plantAddress={readContracts.Plant.address}
-          setDisplayBuyPlantBtn={setDisplayBuyPlantBtn}
-          writeContracts={writeContracts}
-          tx={tx}
+      <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
+        <p className="title">Fruit</p>
+        <FruitSwap 
+            address={address}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
         />
-      ) : (
-        ""
-      )}
-      <br />
-      {displayBuyPlantBtn ? (
-        <Button
-          style={{ marginTop: 8, marginBottom: 8 }}
-          onClick={async () => {
-            setBuyPlantBtnStr("loading...");
-            setBuyPlantStr("");
-            const result = tx(writeContracts.Plant.buy(), update => {
-              console.log("📡 Transaction Update:", update);
-              if (update && (update.status === "confirmed" || update.status === 1)) {
-                console.log(" 🍾 Transaction " + update.hash + " finished!");
-                console.log(
-                  " ⛽️ " +
-                    update.gasUsed +
-                    "/" +
-                    (update.gasLimit || update.gas) +
-                    " @ " +
-                    parseFloat(update.gasPrice) / 1000000000 +
-                    " gwei",
-                );
+
+      </div>
+      <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
+        <p className="title">Seed</p>
+        <div>The Plant seed price is {seedPrice ? utils.formatEther(seedPrice) : "loading..."} FRUIT.</div>
+        <div>Right now you have {fruitBalance ? utils.formatEther(fruitBalance) : "loading..."} FRUIT.</div>
+        {displayBuyFruitBtn ? (
+          <Button
+            style={{ marginTop: 8, marginBottom: 8 }}
+            onClick={async () => {
+              setBuyFruitBtnStr("loading...");
+
+              const result = tx(writeContracts.Fruit.freeFruit(), update => {
+                console.log("📡 Transaction Update:", update);
+                if (update && (update.status === "confirmed" || update.status === 1)) {
+                  console.log(" 🍾 Transaction " + update.hash + " finished!");
+                  console.log(
+                    " ⛽️ " +
+                      update.gasUsed +
+                      "/" +
+                      (update.gasLimit || update.gas) +
+                      " @ " +
+                      parseFloat(update.gasPrice) / 1000000000 +
+                      " gwei",
+                  );
+                }
+              });
+              console.log("awaiting metamask/web3 confirm result...", result);
+              console.log(await result);
+              setBuyFruitBtnStr("Get Free Fruits");
+            }}
+          >
+            {buyFruitBtnStr}
+          </Button>
+        ) : (
+          ""
+        )}
+        <br />
+        {seedPrice ? (
+          <GetApproveFruit
+            address={address}
+            readContracts={readContracts}
+            plantAddress={readContracts.Plant.address}
+            setDisplayBuyPlantBtn={setDisplayBuyPlantBtn}
+            writeContracts={writeContracts}
+            tx={tx}
+          />
+        ) : (
+          ""
+        )}
+        <br />
+        {displayBuyPlantBtn ? (
+          <Button
+            style={{ marginTop: 8, marginBottom: 8 }}
+            onClick={async () => {
+              setBuyPlantBtnStr("loading...");
+              setBuyPlantStr("");
+              const result = tx(writeContracts.Plant.buy(), update => {
+                console.log("📡 Transaction Update:", update);
+                if (update && (update.status === "confirmed" || update.status === 1)) {
+                  console.log(" 🍾 Transaction " + update.hash + " finished!");
+                  console.log(
+                    " ⛽️ " +
+                      update.gasUsed +
+                      "/" +
+                      (update.gasLimit || update.gas) +
+                      " @ " +
+                      parseFloat(update.gasPrice) / 1000000000 +
+                      " gwei",
+                  );
+                }
+              });
+              console.log("awaiting metamask/web3 confirm result...", result);
+              console.log(await result);
+              setBuyPlantBtnStr("Buy Seed");
+              if (setTransferEvents.length > plantsCount) {
+                setBuyPlantStr("You bought a seed.");
               }
-            });
-            console.log("awaiting metamask/web3 confirm result...", result);
-            console.log(await result);
-            setBuyPlantBtnStr("Buy plants");
-            if (setTransferEvents.length > plantsCount) {
-              setBuyPlantStr("Succed");
-            }
-            plantsCount = setTransferEvents.length;
-          }}
-        >
-          {buyPlantBtnStr}
-        </Button>
-      ) : (
-        ""
-      )}
-      <h6>{buyPlantStr}</h6>
+              plantsCount = setTransferEvents.length;
+            }}
+          >
+            {buyPlantBtnStr}
+          </Button>
+        ) : (
+          ""
+        )}
+        <h6>{buyPlantStr}</h6>
+        <div>Price: {seedPrice ? utils.formatEther(seedPrice) : "loading..."} FRUIT</div>
+      </div>
     </div>
   );
 }
@@ -264,21 +273,6 @@ export default function Banks({
         address={address}
         setTransferEvents={setTransferEvents}
       />
-
-      {/*
-      ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
-    */}
-      <div
-        style={{
-          border: "10px solid #fc8c03",
-          borderRadius: "10px",
-          padding: 16,
-          width: 400,
-          margin: "auto",
-          marginTop: 64,
-          backgroundColor: "lightgray",
-        }}
-      ></div>
     </div>
   );
   // <table style={{ margin: "auto" }}>

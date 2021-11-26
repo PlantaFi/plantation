@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Row, Col, Button, Divider, Space } from "antd";
 import { UpOutlined, DownOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { LandDetails, Plant } from "./";
+// import { PlantSelect } from "../components/";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 
 import {
@@ -247,6 +248,14 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               </div>
             </div>
           </div>
+    {/*
+              <PlantSelect
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                readContracts={readContracts}
+              />
+              */}
         </nav>
         <Switch>
           <div>

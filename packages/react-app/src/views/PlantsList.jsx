@@ -38,7 +38,7 @@ export default function PlantsList({ address, readContracts, writeContracts, tx 
     */}
     
           <div className="nes-container with-title" style={{marginTop: 20}}>
-            <p className="title">Choose plant </p>
+            <p className="title">Visit your plants </p>
             <div style={{display: 'block', width: '100%'}}>
 
             {plantList ? (
