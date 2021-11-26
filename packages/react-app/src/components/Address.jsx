@@ -67,7 +67,7 @@ export default function Address(props) {
     return (
       <span style={{ verticalAlign: "middle" }}>
         <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
+          style={{ color: currentTheme === "light" ? "#ddd" : "#ddd" }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
@@ -83,7 +83,7 @@ export default function Address(props) {
     text = (
       <Text editable={{ onChange: props.onChange }} copyable={{ text: address }}>
         <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
+          style={{ color: currentTheme === "light" ? "#ddd" : "#ddd" }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
@@ -96,7 +96,7 @@ export default function Address(props) {
     text = (
       <Text copyable={{ text: address }}>
         <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
+          style={{ color: currentTheme === "light" ? "#ddd" : "#ddd" }}
           target="_blank"
           href={etherscanLink}
           rel="noopener noreferrer"
