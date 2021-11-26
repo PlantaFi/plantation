@@ -17,7 +17,7 @@ const _onUpdate = update => {
         " gwei",
     );
   }
-}
+};
 
 import {
   useBalance,
@@ -38,17 +38,14 @@ function DisplayApproveBtn({
   tx,
   writeContracts,
 }) {
-  const allowanceEther = utils.formatEther(fruitAllowance);
+  // const allowanceEther = utils.formatEther(fruitAllowance);
   const [approveBtnStr, setApproveBtnStr] = useState("Approve");
-  let displayBtn = true;
-  console.log("allowanceEther " + Number(allowanceEther));
-  if (Number(allowanceEther) > 0) {
-    displayBtn = false;
-  }
-  console.log("displayBtn " + displayBtn);
+
   return (
     <div>
-      {displayBtn ? (
+      {fruitAllowance > 0 ? (
+        setDisplayBuyPlantBtn(true)
+      ) : (
         <Button
           style={{ marginTop: 8, marginBottom: 8 }}
           onClick={async () => {
@@ -59,7 +56,7 @@ function DisplayApproveBtn({
                 plantAddress,
                 "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
               ),
-              _onUpdate
+              _onUpdate,
             );
             console.log("awaiting metamask/web3 confirm result...", result);
             console.log(await result);
@@ -68,8 +65,6 @@ function DisplayApproveBtn({
         >
           {approveBtnStr}
         </Button>
-      ) : (
-        setDisplayBuyPlantBtn(true)
       )}
     </div>
   );
@@ -106,45 +101,25 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
   const fruitBalance = useContractReader(readContracts, "Fruit", "balanceOf", [address]);
   let displayApproveBtn = false;
 
-  if (seedPrice != undefined) {
-    const plantAddress = readContracts.Plant.address;
-    console.log("fruitBalance " + readContracts.Plant.address);
-
-    // if (fruitAllowance != undefined) {
-    //     if (fruitAllowance > 0) {
-    //       displayBuyPlantBtn = true;
-    //       displayApproveBtn = false;
-    //     } else {
-    //       displayBuyPlantBtn = false;
-    //       displayApproveBtn = true;
-    //     }
-    //   }
-  }
-
-  // if (fruitBalance != undefined && seedPrice != undefined) {
-  //   if (seedPrice > fruitBalance) {
-  //     displayBuyFruitBtn = true;
-  //   } else {
-  //     displayBuyFruitBtn = false;
-  //   }
-  // }
-  console.log("seedPrice " + seedPrice);
-  console.log("fruitBalance " + fruitBalance);
   return (
     <div className="nes-container is-rounded is-dark with-title">
       <p className="title">Market</p>
 
-      <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
+      <div
+        className="nes-container is-rounded is-dark with-title"
+        style={{ maxWidth: 400, display: "inline-block", verticalAlign: "top" }}
+      >
         <p className="title">Fruit</p>
-        {writeContracts.Fruit !=undefined ? (<FruitSwap
-            address={address}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-        />) : ''}
-
+        {writeContracts.Fruit != undefined ? (
+          <FruitSwap address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
+        ) : (
+          ""
+        )}
       </div>
-      <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
+      <div
+        className="nes-container is-rounded is-dark with-title"
+        style={{ maxWidth: 400, display: "inline-block", verticalAlign: "top" }}
+      >
         <p className="title">Seed</p>
         {seedPrice ? (
           <GetApproveFruit
@@ -194,13 +169,15 @@ function Shop({ address, tx, readContracts, writeContracts, setTransferEvents })
         ) : (
           ""
         )}
-        <h6>{buyPlantStr}</h6>
+        <h6 style={{ color: "white" }}>{buyPlantStr}</h6>
         <div>Price: {seedPrice ? utils.formatEther(seedPrice) : "loading..."} FRUIT</div>
       </div>
-      <div className="nes-container is-rounded is-dark with-title" style={{maxWidth: 400, display: 'inline-block', verticalAlign: 'top'}}>
+      <div
+        className="nes-container is-rounded is-dark with-title"
+        style={{ maxWidth: 400, display: "inline-block", verticalAlign: "top" }}
+      >
         <p className="title">Land</p>
         Visit the map and choose a location to purchase LAND.
-
       </div>
     </div>
   );
@@ -218,19 +195,17 @@ export default function Banks({
   readContracts,
   writeContracts,
 }) {
-
   return (
     <div>
       {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
 
-      {writeContracts.Fruit != undefined ? (<PlantaWallet
-        readContracts={readContracts}
-        writeContracts={writeContracts}
-        tx={tx}
-        address={address}
-      />) : ''}
+      {writeContracts.Fruit != undefined ? (
+        <PlantaWallet readContracts={readContracts} writeContracts={writeContracts} tx={tx} address={address} />
+      ) : (
+        ""
+      )}
       <Shop
         readContracts={readContracts}
         writeContracts={writeContracts}

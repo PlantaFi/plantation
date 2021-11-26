@@ -40,7 +40,7 @@ export default function FruitSwap({ address, tx, readContracts, writeContracts }
     writeContracts.Fruniswap.address,
   ]);
   const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(newFruitAmount)]);
-  console.log(newFruitAmount +" newFruitAmount");
+
   return (
     <div>
       {/*
@@ -60,8 +60,6 @@ export default function FruitSwap({ address, tx, readContracts, writeContracts }
               parseEth(e.target.value);
               setNewFruitAmount(e.target.value);
 
-
-              console.log(x);
             } catch (err) {}}}
         />
         {/*

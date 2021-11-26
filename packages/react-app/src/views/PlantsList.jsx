@@ -16,7 +16,7 @@ function DisplayPlantsList({ plantId, setPlantId }) {
           dataSource={data}
           renderItem={item => (
             <List.Item key={item} onClick={() => setPlantId(item)}>
-              <Link to="/plant">{item}</Link>
+              <Link to="/plantUI">{item}</Link>
             </List.Item>
           )}
         />
@@ -27,7 +27,6 @@ function DisplayPlantsList({ plantId, setPlantId }) {
 
 export default function PlantsList({ address, readContracts, writeContracts, tx }) {
   const plantList = useContractReader(readContracts, "Plant", "plantedByAddress", [address]);
-  console.log(plantList);
   const [plantId, setPlantId] = useState();
   return (
     <div>
@@ -36,33 +35,31 @@ export default function PlantsList({ address, readContracts, writeContracts, tx 
           {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
-    
-          <div className="nes-container with-title" style={{marginTop: 20}}>
-            <p className="title">Visit your plants </p>
-            <div style={{display: 'block', width: '100%'}}>
 
-            {plantList ? (
-              <div>
-                {plantList.length > 0 ? (
-                  <div>
-                    {plantList.map(plantId => (
-                      <DisplayPlantsList plantId={plantId} setPlantId={setPlantId} />
-                    ))}
-                  </div>
-                ) : (
-                  "You have no plant."
-                )}
-              </div>
-            ) : (
-              "Loading..."
-            )}
-    
+          <div className="nes-container with-title" style={{ marginTop: 20 }}>
+            <p className="title">Visit your plants </p>
+            <div style={{ display: "block", width: "100%" }}>
+              {plantList ? (
+                <div>
+                  {plantList.length > 0 ? (
+                    <div>
+                      {plantList.map(plantId => (
+                        <DisplayPlantsList plantId={plantId} setPlantId={setPlantId} />
+                      ))}
+                    </div>
+                  ) : (
+                    "You have no plant."
+                  )}
+                </div>
+              ) : (
+                "Loading..."
+              )}
             </div>
           </div>
         </nav>
         <Switch>
           <div>
-            <Route path="/plant">
+            <Route path="/plantUI">
               <Plant
                 plantId={plantId}
                 address={address}

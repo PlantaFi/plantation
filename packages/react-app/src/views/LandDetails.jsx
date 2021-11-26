@@ -104,8 +104,6 @@ function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts
   const [displayList, setDisplayList] = useState(true);
   const [transcationError, setTranscationError] = useState("");
 
-  console.log("ownedUnplanted " + ownedUnplantedList);
-
   return (
     <div>
       <h4 style={{ color: "white" }}>{transactionStr}</h4>
@@ -196,11 +194,6 @@ export default function LandDetail({
 }) {
   const landDetails = useContractReader(readContracts, "Land", "landDetailsByDistance", [landTokenId, 0]);
 
-  // console.log("plantId " + plantId);
-  // console.log("isMinted " + isMinted);
-  // console.log("isPlanted " + isPlanted);
-
-  console.log("landDetails " + landDetails);
   return (
     <div style={{ position: "relative", top: -20 }}>
       {/*
@@ -216,7 +209,7 @@ export default function LandDetail({
         <div className="nes-container is-rounded is-dark with-title">
           <p className="title">Chosen location</p>
           <div style={{ display: "block", width: "100%" }}>
-            <div style={{ width: "50%", display: "inline-block", verticalAlign: 'top'  }}>
+            <div style={{ width: "50%", display: "inline-block", verticalAlign: "top" }}>
               <div className="nes-container is-rounded is-dark" style={{ width: "100%", textAlign: "left" }}>
                 {isMinted ? (
                   <span>
@@ -250,7 +243,7 @@ export default function LandDetail({
                 </span>
               </div>
             </div>
-            <div style={{ width: "50%", display: "inline-block", verticalAlign: 'top' }}>
+            <div style={{ width: "50%", display: "inline-block", verticalAlign: "top" }}>
               {(() => {
                 const id = landTokenId;
                 const range = Object.keys([...Array(32)]);
@@ -291,9 +284,8 @@ export default function LandDetail({
                   {isPlanted ? (
                     <div>
                       <h4 style={{ color: "white" }}>{plantId}</h4>
-                      <Link className="nes-btn is-success" to="/plant">
-                        {" "}
-                        plant Details{" "}
+                      <Link className="nes-btn is-success" to="/plantUI">
+                        plant Details
                       </Link>
                     </div>
                   ) : (
@@ -312,39 +304,6 @@ export default function LandDetail({
           </div>
         </div>
       </div>
-      {/*
-        <h6>{landDetails ? <Getcoordination coordination={landDetails[0][0]} /> : "loading..."}</h6>
-        <br />
-        <h6>
-          {isMinted ? (
-            "Owner: " + ownerAddress
-          ) : (
-            <BuyLand writeContracts={writeContracts} landTokenId={landTokenId} address={address} tx={tx} />
-          )}
-        </h6>
-        <br />
-        <h6>
-          {isPlanted ? (
-            <div>
-              <h4>{plantId}</h4>
-              <Link to="/plant"> plant Details </Link>
-            </div>
-          ) : (
-            <IsOwner
-              ownerAddress={ownerAddress}
-              address={address}
-              landTokenId={landTokenId}
-              readContracts={readContracts}
-              writeContracts={writeContracts}
-              tx={tx}
-            />
-          )}
-        </h6>
-        <br />
-        <h6>Land Type: {landDetails ? landDetails[1][0] : "loading..."}</h6>
-        <br />
-        <h6>Burn Power:{landDetails ? landDetails[2][0] : "loading..."}</h6>
-    */}
     </div>
   );
 }

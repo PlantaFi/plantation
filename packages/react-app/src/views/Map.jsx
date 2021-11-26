@@ -70,7 +70,6 @@ function MapDesign({
         >
           <Link
             onClick={() => {
-              console.log("landId " + distanceInfo[0][i]);
               setLandTokenId(distanceInfo[0][i]);
               setOwnerAddress(distanceInfo[1][i]);
               setIsMinted(distanceInfo[2][i]);
@@ -283,7 +282,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               />
             </Route>
 
-            <Route path="/plant">
+            <Route path="/plantUI">
               <Plant
                 plantId={plantId}
                 landTokenId={landTokenId}

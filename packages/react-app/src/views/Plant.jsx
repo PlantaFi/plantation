@@ -67,7 +67,7 @@ const MAX_UINT256 = "11579208923731619542357098500868790785326998466564056403945
 const FRUIT_PER_MASS = 10;
 
 function Getcoordination({ coordination }) {
-  console.log("coordination " + coordination);
+  // console.log("coordination " + coordination);
   const x = Math.floor(coordination % 32).toString();
   const y = Math.floor(coordination / 32).toString();
   return "(" + y + "," + x + ")";
@@ -116,7 +116,6 @@ function calcTreePos(species, treeState, fruitCount) {
   return `-${posX}px -${posY}px`;
 }
 const getTreeStyle = (species, treeState, fruitCount) => {
-  console.log(species);
   return {
     objectFit: "none",
     objectPosition: calcTreePos(species, treeState, fruitCount),
@@ -149,7 +148,6 @@ function parseGenes(dnaStr) {
 }
 
 function CountTreeStage({ sum }) {
-  console.log("sum1 " + sum);
   //SEED
   if (sum < 100) {
     return 0;
@@ -184,8 +182,8 @@ function DisplayPlantImage({ plantDNA, lastNormalBranch, lastWeakBranch, lastDea
     Number(utils.formatEther(lastDeadBranch)) +
     Number(utils.formatEther(lastDeadPruned));
   const treeState = CountTreeStage({ sum });
-  console.log("sum " + sum);
   console.log("treeState " + treeState);
+  console.log("sum " + sum);
 
   return (
     <div>
@@ -257,20 +255,7 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
   );
 }
 
-/*
-plantId={plantId}
-             plantDNA={plantState[0]}
-             isAlive={plantState[1]}
-             geo={plantState[12]}
-             waterLevel={plantState[7]}
-             lastNormalBranch={plantState[3]._hex}
-             lastWeakBranch={plantState[4]._hex}
-             lastDeadBranch={plantState[5]._hex}
-             lastDeadPruned={plantState[6]._hex}
-
-*/
-
-function CountWaterLevel({ waterLevel}) {
+function CountWaterLevel({ waterLevel }) {
   return (
     <div>
       Water Level:{utils.formatEther(waterLevel)}
@@ -279,7 +264,7 @@ function CountWaterLevel({ waterLevel}) {
   );
 }
 
-function DisplayBurn({ isAlive, tx, writeContracts,  landTokenId }) {
+function DisplayBurn({ isAlive, tx, writeContracts, landTokenId }) {
   return (
     <div>
       {isAlive ? (
@@ -336,68 +321,17 @@ function DisplayBranches({ lastNormalBranch, lastWeakBranch, lastDeadBranch, las
   );
 }
 
-function DisplayFruits({flowers}) {
-  return (<div><span style={{ color: "black" }}>Fruit: {utils.formatEther(flowers)} / 100</span>
-  <progress className="nes-progress " value={utils.formatEther(flowers)} max="100"></progress></div>);
-}
-
-function PlantDetails({
-  plantId,
-  isAlive,
-  plantDNA,
-  geo,
-  waterLevel,
-  lastNormalBranch,
-  lastWeakBranch,
-  lastDeadBranch,
-  lastDeadPruned,
-}) {
-  const plantGene = parseGenes(plantDNA.toString(2).padStart(32, "0"));
-  const sum =
-    Number(utils.formatEther(lastNormalBranch)) +
-    Number(utils.formatEther(lastWeakBranch)) +
-    Number(utils.formatEther(lastDeadBranch)) +
-    Number(utils.formatEther(lastDeadPruned));
-  const treeState = CountTreeStage({ sum });
-  console.log("sum " + sum);
-  console.log("treeState " + treeState);
-
+function DisplayFruits({ flowers }) {
   return (
     <div>
-      {plantGene ? (
-        <div>
-          <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
-            <Space align="center">
-              <Col span={8}>
-                <PlantImage species={plantGene.species} treeState={treeState} fruit={plantGene.fruit} />
-              </Col>
-            </Space>
-            <Col span={8} offset={5}>
-              <h4>ID:{plantId}</h4>
-              <h4>
-                Coordination:
-                <Getcoordination coordination={geo} />
-              </h4>
-              <h3>Healthy: </h3>
-              <h3>weak:{plantGene.weak}</h3>
-              <h3>{isAlive ? "Alive" : "Dead!"}</h3>
-              <h3>Ripe: </h3>
-              <h3>Water:</h3> <h6>{utils.formatEther(waterLevel)}</h6>
-              <h3>Fertile:{plantGene.fertile}</h3>
-            </Col>
-          </Row>
-        </div>
-      ) : (
-        ""
-      )}
+      <span style={{ color: "black" }}>Fruit: {utils.formatEther(flowers)} / 100</span>
+      <progress className="nes-progress " value={utils.formatEther(flowers)} max="100"></progress>
     </div>
   );
 }
-// <h3>{plantGene.die == 0 ? "Alive" : "Dead!"}</h3>
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
   const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
-  console.log(" plantState " + plantState);
   return (
     <div>
       {/*
@@ -442,8 +376,16 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             </div>
 
             <div className="nes-container is-rounded is-dark" style={{}}>
-              {plantState ? <DisplayBurn isAlive={plantState[1]} tx={tx}
-              writeContracts={writeContracts} landTokenId={plantState[12]}/> : "loading"}
+              {plantState ? (
+                <DisplayBurn
+                  isAlive={plantState[1]}
+                  tx={tx}
+                  writeContracts={writeContracts}
+                  landTokenId={plantState[12]}
+                />
+              ) : (
+                "loading"
+              )}
             </div>
           </div>
         </div>
@@ -487,7 +429,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-          {plantState ? <DisplayFruits flowers={plantState[15]}/>: "loading..."}
+            {plantState ? <DisplayFruits flowers={plantState[15]} /> : "loading..."}
 
             {plantState ? (
               <GetApproveMatics

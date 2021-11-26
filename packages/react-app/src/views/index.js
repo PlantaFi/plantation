@@ -1,5 +1,4 @@
 export { default as Banks } from "./Banks";
-export { default as Shop } from "./Shop";
 export { default as Plant } from "./Plant";
 export { default as Map } from "./Map";
 export { default as LandDetails } from "./LandDetails";
