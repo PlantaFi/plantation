@@ -183,7 +183,7 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
         <button
           type="button"
           style={{ margin: 10 }}
-          class="nes-btn is-success"
+          className="nes-btn is-success"
           onClick={async () => {
             const result = tx(writeContracts.Plant.fertilize(plantId), update => {
               console.log("📡 Transaction Update:", update);
@@ -210,7 +210,7 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
         <button
           type="button"
           style={{ margin: 10 }}
-          class="nes-btn is-success"
+          className="nes-btn is-success"
           onClick={async () => {
             const result = tx(writeContracts.FMatic.approve(plantId), update => {
               console.log("📡 Transaction Update:", update);
@@ -367,7 +367,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
             type="button"
             style={{ margin: 10 }}
-            class="nes-btn is-error"
+            className="nes-btn is-error"
             >
             Burn!
             </button>
@@ -383,7 +383,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
           <button
             type="button"
             style={{ margin: 10 }}
-            class="nes-btn is-primary"
+            className="nes-btn is-primary"
           >
             Water
           </button>
@@ -395,14 +395,14 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
           <button
             type="button"
             style={{ margin: 10 }}
-            class="nes-btn "
+            className="nes-btn "
           >
             Fertilize
           </button>
           <button
             type="button"
             style={{ margin: 10 }}
-            class="nes-btn "
+            className="nes-btn "
           >
             Harvest
           </button>
@@ -420,7 +420,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
           <button
             type="button"
             style={{ margin: 10 }}
-            class="nes-btn is-normal"
+            className="nes-btn is-normal"
             onClick={async () => {
               const result = tx(writeContracts.Plant.prune(plantId), update => {
                 console.log("📡 Transaction Update:", update);
@@ -496,7 +496,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn is-success"
+              className="nes-btn is-success"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.water(plantId), update => {
                   console.log("📡 Transaction Update:", update);
@@ -526,7 +526,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn is-error"
+              className="nes-btn is-error"
               onClick={async () => {
                 const result = tx(writeContracts.Land.handleBurn(landTokenId), update => {
                   console.log("📡 Transaction Update:", update);
@@ -556,7 +556,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn is-warning"
+              className="nes-btn is-warning"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.prune(plantId), update => {
                   console.log("📡 Transaction Update:", update);
@@ -602,7 +602,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn is-success"
+              className="nes-btn is-success"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.harvest(plantId), update => {
                   console.log("📡 Transaction Update:", update);

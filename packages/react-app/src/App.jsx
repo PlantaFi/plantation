@@ -813,17 +813,17 @@ function App(props) {
       <div className="nes-container with-title">
         <p className="title">Footer</p>
         <p>
-          <span class="nes-text is-disabled">
+          <span className="nes-text is-disabled">
 
             <a href="/land">Help land </a>
           </span>
           |
-          <span class="nes-text is-disabled">
+          <span className="nes-text is-disabled">
 
             <a href="/fruit">Help Fruit </a>
           </span>
           |
-          <span class="nes-text is-disabled">
+          <span className="nes-text is-disabled">
 
             <a href="/plant">Help Plant </a>
           </span>

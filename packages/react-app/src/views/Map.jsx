@@ -152,7 +152,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     <button
                       type="button"
                       style={{ margin: 10 }}
-                      class="nes-btn"
+                      className="nes-btn"
                       onClick={() => {
                         if (currentx > 4) setCurrentx(currentx - 4);
                       }}
@@ -172,7 +172,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     <button
                       type="button"
                       style={{ margin: 10 }}
-                      class="nes-btn"
+                      className="nes-btn"
                       onClick={() => {
                         if (currenty > 4) setCurrenty(currenty - 4);
                       }}
@@ -191,7 +191,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     <button
                       type="button"
                       style={{ margin: 10 }}
-                      class="nes-btn"
+                      className="nes-btn"
                       onClick={() => {
                         if (currenty < 28) setCurrenty(currenty + 4);
                       }}
@@ -233,7 +233,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                   <button
                     type="button"
                     style={{ margin: 10 }}
-                    class="nes-btn"
+                    className="nes-btn"
                     onClick={() => {
                       if (currentx < 28) setCurrentx(currentx + 4);
                     }}
