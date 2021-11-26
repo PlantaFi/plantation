@@ -621,6 +621,14 @@ function App(props) {
             />
           </Route>
           <Route path="/plant">
+            <Plant
+              plantId={0x2}
+              address={"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"}
+              mainnetProvider={mainnetProvider}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+            />
             <Contract
               name="Plant"
               price={price}
