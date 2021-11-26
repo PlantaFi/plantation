@@ -36,24 +36,15 @@ export default function PlantsList({ address, readContracts, writeContracts, tx 
           {/*
       ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
     */}
-          <div
-            style={{
-              border: "10px solid #fc8c03",
-              borderRadius: "10px",
-              padding: 16,
-              width: 520,
-              margin: "auto",
-              marginTop: 64,
-              marginBottom: 64,
-              backgroundColor: "lightgray",
-              textAlign: "center",
-            }}
-          >
+    
+          <div className="nes-container with-title" style={{marginTop: 20}}>
+            <p className="title">Choose plant </p>
+            <div style={{display: 'block', width: '100%'}}>
+
             {plantList ? (
               <div>
                 {plantList.length > 0 ? (
                   <div>
-                    <h6>Please choose a plant:</h6>
                     {plantList.map(plantId => (
                       <DisplayPlantsList plantId={plantId} setPlantId={setPlantId} />
                     ))}
@@ -65,6 +56,8 @@ export default function PlantsList({ address, readContracts, writeContracts, tx 
             ) : (
               "Loading..."
             )}
+    
+            </div>
           </div>
         </nav>
         <Switch>
