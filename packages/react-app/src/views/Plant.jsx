@@ -16,7 +16,7 @@ import {
   Switch,
   Space,
 } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Address, Balance } from "../components";
 
 import fruitTreePng from "../lpc-fruit-trees/fruit-trees.png";
@@ -182,8 +182,8 @@ function DisplayPlantImage({ plantDNA, lastNormalBranch, lastWeakBranch, lastDea
     Number(utils.formatEther(lastDeadBranch)) +
     Number(utils.formatEther(lastDeadPruned));
   const treeState = CountTreeStage({ sum });
-  console.log("treeState " + treeState);
-  console.log("sum " + sum);
+//  console.log("treeState " + treeState);
+//  console.log("sum " + sum);
 
   return (
     <div>
@@ -255,11 +255,19 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
   );
 }
 
-function CountWaterLevel({ waterLevel }) {
+function CountWaterLevel({ state }) {
+  // lastWaterLevel
+  // lastWaterTicks
+  // lastWaterUseRate
+  // lastWateredAt
+  const hoursElapsed = (+new Date() / 1000 - state.lastWateredAt.toNumber()) / 3600;
+  const lastWaterLevel = utils.formatEther(state.lastWaterLevel);
+  const lastWaterUseRate = utils.formatEther(state.lastWaterUseRate);
+  const newWaterLevel = lastWaterLevel - hoursElapsed * lastWaterUseRate;
   return (
     <div>
-      Water Level:{utils.formatEther(waterLevel)}
-      <progress className="nes-progress is-primary" value={utils.formatEther(waterLevel)} max="100"></progress>
+      Water Level: {newWaterLevel} / {lastWaterLevel}
+      <progress className="nes-progress is-primary" value={100*newWaterLevel/lastWaterLevel} max="100"></progress>
     </div>
   );
 }
@@ -332,6 +340,17 @@ function DisplayFruits({ flowers }) {
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
   const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
+//  console.log(plantState);
+
+  const [secs, setSecs] = useState(0);
+  useEffect(() => {
+    console.log('New interval set');
+    const interval = setInterval(() => {
+      setSecs(secs => secs + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div>
       {/*
@@ -395,7 +414,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
             <span style={{ color: "black" }}>
-              {plantState ? <CountWaterLevel waterLevel={plantState[7]} /> : "loading.."}
+              {plantState ? <CountWaterLevel state={plantState} /> : "loading.."}
             </span>
 
             <button
