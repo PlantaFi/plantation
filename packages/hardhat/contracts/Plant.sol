@@ -18,7 +18,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
 
     uint256 private counter;
     // Every constant as wad
-    uint256 immutable GAME_TICK = PRBU.fromUint(360); //1 hours);
+    uint256 immutable GAME_TICK = PRBU.fromUint(36); // was: "1 hours", now 100x faster
     uint256 immutable WATER_MAX_ABSORB = PRBU.fromUint(500);
     uint256 immutable FRAILTY_THRESH = PRBU.fromUint(5000);
     uint256 constant public BASE_PRICE = 2 ether;
