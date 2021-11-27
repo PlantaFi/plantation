@@ -314,15 +314,104 @@ function DisplayBurn({ isAlive, tx, writeContracts, landTokenId }) {
   );
 }
 
-function DisplayBranches({ lastNormalBranch, lastWeakBranch, lastDeadBranch, lastDeadPruned }) {
+function _extrapolateBranches(pstate) {
+  const max = Math.max;
+  const min = Math.min;
+  const fmtEth = utils.formatEther;
+  const floatEth = x => parseFloat(fmtEth(x));
+
+  const tickRate = 36; // TODO 3600
+
+  function parseGenes(dnaStr) {
+    const OFFSETS = { SPECIES: 0*3,
+                      GROWTH : 1*3,
+                      MATURE : 2*3, // TODO how soon it starts fruiting
+                      ABSORB : 3*3,
+                      FERTILE: 4*3, // TODO affects potential fruit bounty
+                      FRUIT  : 5*3,
+                      LONG   : 6*3,
+                      WEAK   : 7*3,
+                      DIE    : 8*3,
+                      COLOR  : 9*3, // special case of 5 bits
+                    };
+    const genes = {};
+    for (let key in OFFSETS) {
+      genes[key.toLowerCase()] = parseInt(dnaStr.slice(OFFSETS[key], OFFSETS[key] + (key == 'COLOR' ? 5 : 3)), 2);
+    }
+    return genes;
+  }
+
+  const Genes = parseGenes(pstate.dna.toString(2));
+
+  const factor = (name) => 1 + Genes[name] * .04; // XXX assumes 4% effect per unit for each gene
+  const landSpeciesMatchFactor = () => 1 - .04 * max(5, Math.abs(factor('species') - pstate.landSpecies));
+
+  const MAX_ABSORB = 500;
+  const FRAILTY_THRESH = 5000;
+
+  const branchLinearRate = 1.0 // base rate per hour
+  const wetWeakenRate = 0.05;
+  const dryWeakenRate = 0.2;
+  const strengthenRate = 0.1;
+  const deathRate = 0.1;
+
+  // redefine 'time' to mean seconds of specified 1 hour spent in wet/dry state
+  const wetTime = (tbox) => max(0, (min(tbox.h2oTil, tbox.t1) - max(tbox.h2oFrom, tbox.t0)))/tickRate;
+  const dryTime = (tbox) => (max(tbox.h2oTil, tbox.t1) - max(tbox.h2oTil, tbox.t0))/tickRate;
+  const anyTime = (tbox) => (tbox.t1 - max(tbox.h2oFrom, tbox.t0))/tickRate;
+
+  // TimeBox = { t0, t1, h2oFrom, h2oTil }
+  const wetGrowth = (tbox, norm) => wetTime(tbox) * factor('growth') * (branchLinearRate + Math.sqrt(norm));
+  const wetWeaken = (tbox, norm) => wetTime(tbox) * factor('weak')/2 * wetWeakenRate * norm;
+  const dryWeaken = (tbox, norm) => dryTime(tbox) * factor('weak')/2 * dryWeakenRate * norm;
+  const wetStrengthen = (tbox, weak) => wetTime(tbox) * strengthenRate * weak;
+  const normBranchGrowth = (tbox, norm, weak, frailty) => wetGrowth(tbox, norm) - frailty * wetWeaken(tbox, norm) + wetStrengthen(tbox, weak) - frailty * dryWeaken(tbox, norm);
+  const weakBranchGrowth = (tbox, norm, weak, frailty) =>                         frailty * wetWeaken(tbox, norm) - wetStrengthen(tbox, weak) + frailty * dryWeaken(tbox, norm) - deadBranchGrowth(tbox, weak);
+  const deadBranchGrowth = (tbox, weak) => factor('die') * deathRate * anyTime(tbox) * weak;
+
+
+  let [norm, weak, dead] = [floatEth(pstate.lastNormalBranch), floatEth(pstate.lastWeakBranch), floatEth(pstate.lastDeadBranch)];
+  console.log(typeof norm);
+  const h2oFrom = pstate.lastWateredAt;
+  const h2oTil = h2oFrom + floatEth(pstate.lastWaterLevel) / floatEth(pstate.lastWaterUseRate) * 36;
+  let tbox = {t0: h2oFrom, t1: null, h2oFrom, h2oTil: h2oTil};
+  let snow = (+new Date()) / 1000;
+  const frailty = 1; // TODO
+  while (tbox.t0 < snow) {
+    tbox.t1 = min(snow, tbox.t0 + tickRate);
+    let normDelta = normBranchGrowth(tbox, norm, weak, frailty);
+    let weakDelta = weakBranchGrowth(tbox, norm, weak, frailty);
+    let deadDelta = deadBranchGrowth(tbox, weak);
+    norm += normDelta;
+    weak += weakDelta;
+    dead += deadDelta;
+    tbox.t0 += tickRate;
+  }
+  return [norm, weak, dead];
+
+}
+
+function DisplayBranches({ state, lastDeadPruned }) {
+  // lastDeadBranch
+  // dna
+  // landBurns
+  // landSpecies
+  // lastDeadPruned
+  // lastNormalBranch
+  // lastWeakBranch
+  // lastFrailty
+  // lastUpdatedAt
+  // isAlive
+  const [norm, weak, dead] = _extrapolateBranches(state);
+  const sum = norm + weak + dead;
   return (
     <div>
-      <span style={{ color: "black" }}>Normal Branches: {utils.formatEther(lastNormalBranch)}</span>
-      <progress className="nes-progress is-success" value={utils.formatEther(lastNormalBranch)} max="100"></progress>
-      <span style={{ color: "black" }}>Weak Branches: {utils.formatEther(lastWeakBranch)}</span>
-      <progress className="nes-progress is-warning" value={utils.formatEther(lastWeakBranch)} max="100"></progress>
-      <span style={{ color: "black" }}>Dead Branches: {utils.formatEther(lastDeadBranch)}</span>
-      <progress className="nes-progress is-error" value={utils.formatEther(lastDeadBranch)} max="100"></progress>
+      <span style={{ color: "black" }}>Normal Branches: {norm}</span>
+      <progress className="nes-progress is-success" value={100 * norm / sum} max="100"></progress>
+      <span style={{ color: "black" }}>Weak Branches: {weak}</span>
+      <progress className="nes-progress is-warning" value={100 * weak / sum} max="100"></progress>
+      <span style={{ color: "black" }}>Dead Branches: {dead}</span>
+      <progress className="nes-progress is-error" value={100 * dead / sum} max="100"></progress>
       <span style={{ color: "black" }}>Pruned Branches: {utils.formatEther(lastDeadPruned)}</span>
       <progress className="nes-progress is-pattern" value={utils.formatEther(lastDeadPruned)} max="100"></progress>
     </div>
@@ -340,7 +429,7 @@ function DisplayFruits({ flowers }) {
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
   const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
-//  console.log(plantState);
+  console.log(plantState);
 
   const [secs, setSecs] = useState(0);
   useEffect(() => {
@@ -495,9 +584,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
           >
             {plantState ? (
               <DisplayBranches
-                lastNormalBranch={plantState[3]._hex}
-                lastWeakBranch={plantState[4]._hex}
-                lastDeadBranch={plantState[5]._hex}
+                state={plantState}
                 lastDeadPruned={plantState[6]._hex}
               />
             ) : (
