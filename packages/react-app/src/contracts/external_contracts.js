@@ -1140,7 +1140,7 @@ module.exports = {
           ]
         },
         "Fruit": {
-          "address": "0x4e9e3700728a3e6382848f4dD24E88a4137D3a59",
+          "address": "0xD65132f117b442AF735C575B5b9954A2D5a28553",
           "abi": [
             {
               "inputs": [],
@@ -1215,6 +1215,19 @@ module.exports = {
               ],
               "name": "Transfer",
               "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "contract Plant",
+                  "name": "_plant",
+                  "type": "address"
+                }
+              ],
+              "name": "_initialize",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
             },
             {
               "inputs": [
@@ -1352,6 +1365,19 @@ module.exports = {
               "type": "function"
             },
             {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                }
+              ],
+              "name": "mintFlowers",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
               "inputs": [],
               "name": "name",
               "outputs": [
@@ -1479,7 +1505,7 @@ module.exports = {
           ]
         },
         "Fruniswap": {
-          "address": "0x566728185F3479f8E562c82581588Ff3C61fCB83",
+          "address": "0x8C06a64155794F00DF3dbc58018a69F3d344b402",
           "abi": [
             {
               "inputs": [],
@@ -1604,7 +1630,7 @@ module.exports = {
           ]
         },
         "Land": {
-          "address": "0x13ef4e0C764B249dddDCb3C40057f359405Fe2a7",
+          "address": "0x35bd71F4E8e50B7d998694DfC4d5005c4Fb81875",
           "abi": [
             {
               "inputs": [],
@@ -2410,7 +2436,7 @@ module.exports = {
           ]
         },
         "Plant": {
-          "address": "0x21b213a992e542DA9429247f29BBD127d89A8f3C",
+          "address": "0x5D6Fe104F85F8f8B9c5358D8d866323F25596085",
           "abi": [
             {
               "inputs": [
@@ -2442,6 +2468,11 @@ module.exports = {
                 {
                   "internalType": "address",
                   "name": "_fruit",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "_fertilizer",
                   "type": "address"
                 }
               ],
@@ -2772,6 +2803,38 @@ module.exports = {
               "inputs": [
                 {
                   "internalType": "uint256",
+                  "name": "plantId",
+                  "type": "uint256"
+                }
+              ],
+              "name": "fertilize",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "fertilizeCost",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
                   "name": "tokenId",
                   "type": "uint256"
                 }
@@ -2782,6 +2845,38 @@ module.exports = {
                   "internalType": "address",
                   "name": "",
                   "type": "address"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "plantId",
+                  "type": "uint256"
+                }
+              ],
+              "name": "harvest",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "plantId",
+                  "type": "uint256"
+                }
+              ],
+              "name": "harvestestable",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
                 }
               ],
               "stateMutability": "view",
@@ -3003,6 +3098,11 @@ module.exports = {
                       "type": "uint32"
                     },
                     {
+                      "internalType": "bool",
+                      "name": "isAlive",
+                      "type": "bool"
+                    },
+                    {
                       "internalType": "uint256",
                       "name": "lastFrailty",
                       "type": "uint256"
@@ -3065,6 +3165,16 @@ module.exports = {
                     {
                       "internalType": "uint256",
                       "name": "landBurns",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "flowers",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "lastFertilizedAt",
                       "type": "uint256"
                     }
                   ],
