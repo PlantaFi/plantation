@@ -23,7 +23,7 @@ import {
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
 // import Hints from "./Hints";
-import { ExampleUI, PairSwap, Hints, Subgraph, Banks, Plant, Map, PlantsList } from "./views";
+import { ExampleUI, PairSwap, Hints, Subgraph, Banks, Plant, Map, PlantsList, Plantstagram } from "./views";
 
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
@@ -513,7 +513,6 @@ function App(props) {
             <span className="nes-text is-success">
               <Link to="/banks"> Bank &amp; Shop </Link>
             </span>
-            |<span className="nes-text is-disabled"> Help </span>
           </p>
         </div>
         <Switch>
@@ -628,6 +627,15 @@ function App(props) {
               address={address}
               blockExplorer={blockExplorer}
               contractConfig={contractConfig}
+            />
+          </Route>
+          <Route path="/plantstagram">
+            <Plantstagram
+              address={address}
+              mainnetProvider={mainnetProvider}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
             />
           </Route>
           <Route path="/fruit">
