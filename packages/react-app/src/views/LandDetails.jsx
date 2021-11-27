@@ -7,7 +7,7 @@ import { Address } from "../components";
 
 import fire from "../assets/fire.gif";
 
-function AnalyseData({ plantId }) {
+function AnalyseData({ plantIdMain }) {
   return;
 }
 
@@ -18,7 +18,7 @@ function Getcoordination({ coordination }) {
   return "(" + y + "," + x + ")";
 }
 
-function BuyLand({ readContracts, writeContracts, landTokenId, address, tx }) {
+function BuyLand({ readContracts, writeContracts, landTokenId, address, tx, setOwnerAddressMain }) {
   const [btnStatus, setBtnStaus] = useState(true);
   const [transactionStatus, setTransactionStatus] = useState("Land is Available!");
   // const landPrice = useContractReader(readContracts, "Land", )
@@ -59,6 +59,7 @@ function BuyLand({ readContracts, writeContracts, landTokenId, address, tx }) {
               );
               console.log("awaiting metamask/web3 confirm result...", result);
               console.log(await result);
+              setOwnerAddressMain(address);
             }}
           >
             Buy Land
@@ -94,8 +95,16 @@ function DisplaySeedsList({ seed, setPlantId }) {
   );
 }
 
-function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts, tx }) {
-  const ownedUnplantedList = useContractReader(readContracts, "Plant", "unplantedByAddress", [ownerAddress]);
+function GetSeedsList({
+  ownerAddressMain,
+  landTokenId,
+  readContracts,
+  writeContracts,
+  tx,
+  setIsPlantedMain,
+  setPlantIdMain,
+}) {
+  const ownedUnplantedList = useContractReader(readContracts, "Plant", "unplantedByAddress", [ownerAddressMain]);
   const [btnStatus, setBtnStaus] = useState(true);
   const [transactionStr, setTransactionStr] = useState("Nothing Planted!");
   const [chooseStr, setChooseStr] = useState("Choose a seed:");
@@ -139,9 +148,11 @@ function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts
                   console.log(await result);
                   setBtnStr("Plant");
                   setChooseStr("");
-                  setTransactionStr(plantId);
+                  // setTransactionStr(plantId);
                   setDisplayList(false);
                   setTranscationError("");
+                  setIsPlantedMain(true);
+                  setPlantIdMain(plantId);
                 } else {
                   setTranscationError("No seed is chosen!");
                 }
@@ -159,20 +170,33 @@ function GetSeedsList({ ownerAddress, landTokenId, readContracts, writeContracts
   );
 }
 
-function IsOwner({ ownerAddress, address, landTokenId, readContracts, writeContracts, tx }) {
+function IsOwner({
+  ownerAddressMain,
+  address,
+  landTokenId,
+  readContracts,
+  writeContracts,
+  tx,
+  setIsPlantedMain,
+  setPlantIdMain,
+}) {
   let isOwner = false;
-  if (ownerAddress == address) {
+  if (ownerAddressMain == address) {
     isOwner = true;
   }
+  console.log("isOwner ownerAddress " + ownerAddressMain);
+  console.log("isOwner " + address);
   return (
     <div>
       {isOwner ? (
         <GetSeedsList
-          ownerAddress={ownerAddress}
+          ownerAddressMain={ownerAddressMain}
           landTokenId={landTokenId}
           readContracts={readContracts}
           writeContracts={writeContracts}
           tx={tx}
+          setIsPlantedMain={setIsPlantedMain}
+          setPlantIdMain={setPlantIdMain}
         />
       ) : (
         <h4 style={{ color: "white" }}>Nothing Planted!</h4>
@@ -192,7 +216,13 @@ export default function LandDetail({
   address,
   tx,
 }) {
+  const [ownerAddressMain, setOwnerAddressMain] = useState(ownerAddress);
+  const [isPlantedMain, setIsPlantedMain] = useState(isPlanted);
+  const [plantIdMain, setPlantIdMain] = useState(plantId);
   const landDetails = useContractReader(readContracts, "Land", "landDetailsByDistance", [landTokenId, 0]);
+  // console.log("landTokenId "+landTokenId);
+  // console.log(landDetails);
+  console.log("isPlantedMain " + isPlantedMain);
 
   return (
     <div style={{ position: "relative", top: -20 }}>
@@ -213,7 +243,7 @@ export default function LandDetail({
               <div className="nes-container is-rounded is-dark" style={{ width: "100%", textAlign: "left" }}>
                 {isMinted ? (
                   <span>
-                    Landowner: <Address address={ownerAddress} /*ensProvider={mainnetProvider}*/ fontSize={16} />
+                    Landowner: <Address address={ownerAddressMain} /*ensProvider={mainnetProvider}*/ fontSize={16} />
                   </span>
                 ) : (
                   <BuyLand
@@ -222,6 +252,7 @@ export default function LandDetail({
                     landTokenId={landTokenId}
                     address={address}
                     tx={tx}
+                    setOwnerAddressMain={setOwnerAddressMain}
                   />
                 )}
               </div>
@@ -281,21 +312,23 @@ export default function LandDetail({
                 style={{ width: "100%", textAlign: "left" }}
               >
                 <div>
-                  {isPlanted ? (
+                  {isPlantedMain ? (
                     <div>
-                      <h4 style={{ color: "white" }}>{plantId}</h4>
+                      <h4 style={{ color: "white" }}>{plantIdMain}</h4>
                       <Link className="nes-btn is-success" to="/plantUI">
                         plant Details
                       </Link>
                     </div>
                   ) : (
                     <IsOwner
-                      ownerAddress={ownerAddress}
+                      ownerAddressMain={ownerAddressMain}
                       address={address}
                       landTokenId={landTokenId}
                       readContracts={readContracts}
                       writeContracts={writeContracts}
                       tx={tx}
+                      setIsPlantedMain={setIsPlantedMain}
+                      setPlantIdMain={setPlantIdMain}
                     />
                   )}
                 </div>
