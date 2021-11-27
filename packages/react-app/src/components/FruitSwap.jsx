@@ -105,7 +105,7 @@ export default function FruitSwap({ address, tx, readContracts, writeContracts }
             style={{ marginTop: 8 }}
             onClick={async () => {
               console.log(fmtEth(newFMaticAmount));
-              const result = tx(writeContracts.FMatic.approve(writeContracts.Fruniswap.address, parseEth("10000")/* newFMaticAmount*/), _onUpdate);
+              const result = tx(writeContracts.Fruniswap.buyFruit(parseEth(newFruitAmount)), _onUpdate);
               console.log("awaiting metamask/web3 confirm result...", result);
               console.log(await result);
             }}
@@ -117,7 +117,7 @@ export default function FruitSwap({ address, tx, readContracts, writeContracts }
             style={{ marginTop: 8 }}
             onClick={async () => {
               const result = tx(
-                writeContracts.FMatic.approve(writeContracts.Fruniswap.address, newFMaticAmount),
+                writeContracts.FMatic.approve(writeContracts.Fruniswap.address, parseEth("10000") /*newFMaticAmount*/),
                 _onUpdate,
               );
               console.log("awaiting metamask/web3 confirm result...", result);
