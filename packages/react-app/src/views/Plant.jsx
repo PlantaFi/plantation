@@ -151,16 +151,16 @@ function parseGenes(dnaStr) {
 
 function CountTreeStage({ sum }) {
   //SEED
-  if (sum < 100) {
+  if (sum < 1) {
     return 0;
     //SPROUT
-  } else if (sum < 1000) {
+  } else if (sum < 10) {
     return 1;
     //BABY
-  } else if (sum < 2000) {
+  } else if (sum < 20) {
     return 2;
     //TEENAGE
-  } else if (sum < 3000) {
+  } else if (sum < 30) {
     return 3;
     //ADULT
   } else {
@@ -176,14 +176,18 @@ function PlantImage({ species, treeState, fruit }) {
   );
 }
 
-function DisplayPlantImage({ plantDNA, lastNormalBranch, lastWeakBranch, lastDeadBranch, lastDeadPruned }) {
+function DisplayPlantImage({ plantDNA, isAlive, lastNormalBranch, lastWeakBranch, lastDeadBranch, lastDeadPruned }) {
   const plantGene = parseGenes(plantDNA.toString(2).padStart(32, "0"));
+
   const sum =
     Number(utils.formatEther(lastNormalBranch)) +
     Number(utils.formatEther(lastWeakBranch)) +
     Number(utils.formatEther(lastDeadBranch)) +
     Number(utils.formatEther(lastDeadPruned));
-  const treeState = CountTreeStage({ sum });
+  let treeState = CountTreeStage({ sum });
+  if (!isAlive) {
+    treeState = 5;
+  }
   console.log("treeState " + treeState);
   console.log("sum " + sum);
 
@@ -474,6 +478,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
               {plantState ? (
                 <DisplayPlantImage
                   plantDNA={plantState[0]}
+                  isAlive={plantState[1]}
                   lastNormalBranch={plantState[3]._hex}
                   lastWeakBranch={plantState[4]._hex}
                   lastDeadBranch={plantState[5]._hex}
