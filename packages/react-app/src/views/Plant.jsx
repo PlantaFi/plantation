@@ -387,7 +387,6 @@ function _extrapolateBranches(pstate) {
     floatEth(pstate.lastWeakBranch),
     floatEth(pstate.lastDeadBranch),
   ];
-  console.log(typeof norm);
   const h2oFrom = pstate.lastWateredAt;
   const h2oTil = h2oFrom + (floatEth(pstate.lastWaterLevel) / floatEth(pstate.lastWaterUseRate)) * 36;
   let tbox = { t0: h2oFrom, t1: null, h2oFrom, h2oTil: h2oTil };
@@ -434,14 +433,17 @@ function DisplayBranches({ state, lastDeadPruned }) {
 }
 
 function DisplayFruits({ flowers, lastFertilizedAt }) {
+  const _last = lastFertilizedAt.toNumber();
   const ripenTime = 36 * 50; // GAME_TICKS*RIPEN_TICKS
   let ripeAmount = floatEth(flowers);
-  if (+new Date() / 1000 < lastFertilizedAt.toNumber() + ripenTime) {
-    ripeAmount = ripeAmount * (+new Date() / 1000 - lastFertilizedAt.toNumber()) / ripenTime;
+  let nowish = +new Date() / 1000;
+  nowish = nowish < _last ? _last : nowish; // if now in past
+  if (nowish < _last + ripenTime) {
+    ripeAmount = ripeAmount * (nowish - _last) / ripenTime;
   }
   return (
     <div>
-      <span style={{ color: "black" }}>Fruit: {ripeAmount} / {floatEth(flowers)}</span>
+      <span style={{ color: "black" }}>Ripe / Fruit: {ripeAmount} / {floatEth(flowers)}</span>
       <progress className="nes-progress " value={100 * ripeAmount / floatEth(flowers)} max="100"></progress>
     </div>
   );
@@ -449,7 +451,6 @@ function DisplayFruits({ flowers, lastFertilizedAt }) {
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
   const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
-  console.log(plantState);
 
   const [secs, setSecs] = useState(0);
   useEffect(() => {
