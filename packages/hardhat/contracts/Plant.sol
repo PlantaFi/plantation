@@ -19,6 +19,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     uint256 private counter;
     // Every constant as wad
     uint256 immutable GAME_TICK = PRBU.fromUint(36); // was: "1 hours", now 100x faster
+    uint256 immutable RIPEN_TICKS = PRBU.fromUint(50); // 30m for 36s ticks
     uint256 immutable WATER_MAX_ABSORB = PRBU.fromUint(500);
     uint256 immutable FRAILTY_THRESH = PRBU.fromUint(5000);
     uint256 constant public BASE_PRICE = 2 ether;
@@ -179,7 +180,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         // TODO mint fruit but keep it - does it stay in fruit contract? or add to pool?
         PlantState storage plant = plantStates[plantId];
         plant.lastFertilizedAt = block.timestamp;
-        uint256 flowerAmount = 1 ether;
+        uint256 flowerAmount = 10 ether;
         fruit.mintFlowers(flowerAmount);
         plant.flowers = flowerAmount; // overwrites any previous flowers, potentially leaving in limbo
         /*
@@ -192,10 +193,29 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         return flowerAmount;
     }
 
+    function harvestestable(uint256 plantId) public view returns (uint256) {
+        PlantState storage plant = plantStates[plantId];
+        uint256 ripeAmount;
+        uint256 ripenTime = PRBU.toUint(PRBU.mul(RIPEN_TICKS, GAME_TICK));
+        if (block.timestamp >= plant.lastFertilizedAt + ripenTime) {
+          ripeAmount = plant.flowers;
+        } else {
+          ripeAmount = PRBU.mul(plant.flowers, PRBU.div(PRBU.fromUint(block.timestamp - plant.lastFertilizedAt), PRBU.fromUint(ripenTime)));
+        }
+        return ripeAmount;
+    }   
+
     function harvest(uint256 plantId) external {
         PlantState storage plant = plantStates[plantId];
+        uint256 ripeAmount;
         // TODO real check that amount is harvestable
-        fruit.transfer(msg.sender, plant.flowers);
+        uint256 ripenTime = PRBU.toUint(PRBU.mul(RIPEN_TICKS, GAME_TICK));
+        if (block.timestamp >= plant.lastFertilizedAt + ripenTime) {
+          ripeAmount = plant.flowers;
+        } else {
+          ripeAmount = PRBU.mul(plant.flowers, PRBU.div(PRBU.fromUint(block.timestamp - plant.lastFertilizedAt), PRBU.fromUint(ripenTime)));
+        }
+        fruit.transfer(msg.sender, ripeAmount);
         plant.flowers = 0;
         // TODO compounded bonus for staking past ripening
     }   
@@ -286,6 +306,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
             }
         }
         {
+            // XXX !!!
             (uint256 newWaterLevel, uint256 newWaterTicks) = remainingWater(ticks, p.lastWaterUseRate, p.lastWaterLevel, p.lastWaterTicks);
             p.lastWaterLevel = newWaterLevel;
             p.lastWaterTicks = newWaterTicks;

@@ -44,6 +44,9 @@ import { useContractConfig } from "./hooks"
 
 const { Panel } = Collapse;
 
+const fmtEth = utils.formatEther;
+const floatEth = x => parseFloat(fmtEth(x));
+
 const TreeStages = ["SEED", "SPROUT", "BABY", "TEENAGE", "ADULT", "DEAD"];
 const MassPerStage = 50; // make same as in Seed.sol
 
@@ -316,8 +319,6 @@ function DisplayBurn({ isAlive, tx, writeContracts, landTokenId }) {
 function _extrapolateBranches(pstate) {
   const max = Math.max;
   const min = Math.min;
-  const fmtEth = utils.formatEther;
-  const floatEth = x => parseFloat(fmtEth(x));
 
   const tickRate = 36; // TODO 3600
 
@@ -428,11 +429,16 @@ function DisplayBranches({ state, lastDeadPruned }) {
   );
 }
 
-function DisplayFruits({ flowers }) {
+function DisplayFruits({ flowers, lastFertilizedAt }) {
+  const ripenTime = 36 * 50; // GAME_TICKS*RIPEN_TICKS
+  let ripeAmount = floatEth(flowers);
+  if (+new Date() / 1000 < lastFertilizedAt.toNumber() + ripenTime) {
+    ripeAmount = ripeAmount * (+new Date() / 1000 - lastFertilizedAt.toNumber()) / ripenTime;
+  }
   return (
     <div>
-      <span style={{ color: "black" }}>Fruit: {utils.formatEther(flowers)} / 100</span>
-      <progress className="nes-progress " value={utils.formatEther(flowers)} max="100"></progress>
+      <span style={{ color: "black" }}>Fruit: {ripeAmount} / {floatEth(flowers)}</span>
+      <progress className="nes-progress " value={100 * ripeAmount / floatEth(flowers)} max="100"></progress>
     </div>
   );
 }
@@ -545,7 +551,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            {plantState ? <DisplayFruits flowers={plantState[15]} /> : "loading..."}
+            {plantState ? <DisplayFruits flowers={plantState[15]} lastFertilizedAt={plantState.lastFertilizedAt} /> : "loading..."}
 
             {plantState ? (
               <GetApproveMatics
