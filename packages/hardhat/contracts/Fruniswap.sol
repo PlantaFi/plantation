@@ -22,8 +22,8 @@ contract Fruniswap {
   
   function initialize(address _v2pair) public /* TODO onlyOwner*/ {
     v2pair = IUniswapV2Pair(_v2pair);
-    token0 = IERC20(v2pair.token0());
-    token1 = IERC20(v2pair.token1());
+    token0 = IERC20(v2pair.token0()); // Fruit
+    token1 = IERC20(v2pair.token1()); // FMatic
   }
 
   function getAmountOutForFruitIn(uint amountIn) public view returns (uint amountOut) {
@@ -32,7 +32,7 @@ contract Fruniswap {
   }
   function getAmountInForFruitOut(uint amountOut) public view returns (uint amountIn) {
     (uint112 r0, uint112 r1, ) = v2pair.getReserves();
-    return UniswapV2Library.getAmountIn(amountOut, r0, r1);
+    return UniswapV2Library.getAmountIn(amountOut, r1, r0);
   }
 
   function sellFruit(uint fruitIn) public returns (uint) {
