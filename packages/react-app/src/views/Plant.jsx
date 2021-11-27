@@ -266,14 +266,22 @@ function CountWaterLevel({ state }) {
   // lastWaterTicks
   // lastWaterUseRate
   // lastWateredAt
-  const hoursElapsed = (+new Date() / 1000 - state.lastWateredAt.toNumber()) / 3600;
+  let nowish = +new Date() / 1000;
+  //const _last = state.lastWateredAt.toNumber();
+  const initWateredAt = state.lastWateredAt.toNumber();
+  const _last = state.lastUpdatedAt.toNumber();
+  const hoursElapsed = (nowish - _last) / 3600;
+  const lastWaterTicks = floatEth(state.lastWaterTicks);
+  const ticksElapsed = (nowish - initWateredAt) / 36; // TODO 36 to 3600
   const lastWaterLevel = utils.formatEther(state.lastWaterLevel);
   const lastWaterUseRate = utils.formatEther(state.lastWaterUseRate);
   const newWaterLevel = lastWaterLevel - hoursElapsed * lastWaterUseRate;
+  console.log(`Ticks: ${ticksElapsed} + ${lastWaterTicks}`);
   return (
     <div>
-      Water Level: {newWaterLevel} / {lastWaterLevel}
-      <progress className="nes-progress is-primary" value={(100 * newWaterLevel) / lastWaterLevel} max="100"></progress>
+      Water Level: {lastWaterLevel}
+      <progress className="nes-progress is-primary" value={(100.0 * lastWaterTicks) / (lastWaterTicks + ticksElapsed)} max="100"></progress>
+      {lastWaterTicks == 0 ? (<span className='nes-text is-error'>DRY!</span>) : ''}
     </div>
   );
 }
@@ -387,7 +395,8 @@ function _extrapolateBranches(pstate) {
     floatEth(pstate.lastWeakBranch),
     floatEth(pstate.lastDeadBranch),
   ];
-  const h2oFrom = pstate.lastWateredAt;
+  //const h2oFrom = pstate.lastWateredAt;
+  const h2oFrom = pstate.lastUpdatedAt;
   const h2oTil = h2oFrom + (floatEth(pstate.lastWaterLevel) / floatEth(pstate.lastWaterUseRate)) * 36;
   let tbox = { t0: h2oFrom, t1: null, h2oFrom, h2oTil: h2oTil };
   let snow = +new Date() / 1000;
@@ -416,7 +425,12 @@ function DisplayBranches({ state, lastDeadPruned }) {
   // lastFrailty
   // lastUpdatedAt
   // isAlive
-  const [norm, weak, dead] = _extrapolateBranches(state);
+  //const [norm, weak, dead] = _extrapolateBranches(state);
+  let [norm, weak, dead] = [
+    floatEth(state.lastNormalBranch),
+    floatEth(state.lastWeakBranch),
+    floatEth(state.lastDeadBranch),
+  ];
   const sum = norm + weak + dead;
   return (
     <div>
