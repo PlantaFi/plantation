@@ -143,6 +143,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         plant.lastWaterUseRate = waterUseRate(plant.lastNormalBranch, plant.lastWeakBranch, plant.lastDeadBranch);
         plant.lastWaterTicks = PRBU.div(plant.lastWaterLevel, plant.lastWaterUseRate);
         plant.lastWateredAt = block.timestamp;
+        // updateState updates lastUpdatedAt. XXX lastWateredAt not used, lastUpdatedAt is.
     }
 
     /// Prune one of `your` `plant`
@@ -350,6 +351,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
 
     function updateState(PlantState storage plant) internal {
         PlantState memory p = state(plant);
+        plant.isAlive = p.isAlive;
         plant.lastNormalBranch = p.lastNormalBranch;
         plant.lastWeakBranch = p.lastWeakBranch;
         plant.lastDeadBranch = p.lastDeadBranch;

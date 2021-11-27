@@ -1140,7 +1140,7 @@ module.exports = {
           ]
         },
         "Fruit": {
-          "address": "0xD65132f117b442AF735C575B5b9954A2D5a28553",
+          "address": "0x47Bf8DE247fA007448a29966932933271aF74A9d",
           "abi": [
             {
               "inputs": [],
@@ -1630,7 +1630,7 @@ module.exports = {
           ]
         },
         "Land": {
-          "address": "0x35bd71F4E8e50B7d998694DfC4d5005c4Fb81875",
+          "address": "0xA564EbE534213CBb17048a4C4F6F40F0f721Aa0C",
           "abi": [
             {
               "inputs": [],
@@ -2436,7 +2436,7 @@ module.exports = {
           ]
         },
         "Plant": {
-          "address": "0x5D6Fe104F85F8f8B9c5358D8d866323F25596085",
+          "address": "0x85E85E525338EC3AC0A7B27D71250542D9d8090e",
           "abi": [
             {
               "inputs": [
