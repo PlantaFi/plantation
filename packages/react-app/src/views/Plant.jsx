@@ -100,7 +100,6 @@ const SpeciesFruitImgOffsets = {
 };
 function calcTreePos(species, treeState, fruitCount) {
   // XXX temp
-  return "0 0";
   // XXX quick hack, all dead trees look the same
   if (TreeStages[treeState] == "DEAD") {
     return "0 -896px";
@@ -182,8 +181,8 @@ function DisplayPlantImage({ plantDNA, lastNormalBranch, lastWeakBranch, lastDea
     Number(utils.formatEther(lastDeadBranch)) +
     Number(utils.formatEther(lastDeadPruned));
   const treeState = CountTreeStage({ sum });
-//  console.log("treeState " + treeState);
-//  console.log("sum " + sum);
+  console.log("treeState " + treeState);
+  console.log("sum " + sum);
 
   return (
     <div>
@@ -196,7 +195,7 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
   const maticAllowance = useContractReader(readContracts, "FMatic", "allowance", [address, plantAddress]);
   return (
     <div>
-      {maticAllowance ? (
+      {maticAllowance > 0 ? (
         <button
           type="button"
           style={{ margin: 10 }}
@@ -229,7 +228,7 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
           style={{ margin: 10 }}
           className="nes-btn is-success"
           onClick={async () => {
-            const result = tx(writeContracts.FMatic.approve(plantId), update => {
+            const result = tx(writeContracts.FMatic.approve(plantAddress, utils.parseEther("1000")), update => {
               console.log("📡 Transaction Update:", update);
               if (update && (update.status === "confirmed" || update.status === 1)) {
                 console.log(" 🍾 Transaction " + update.hash + " finished!");
@@ -267,7 +266,7 @@ function CountWaterLevel({ state }) {
   return (
     <div>
       Water Level: {newWaterLevel} / {lastWaterLevel}
-      <progress className="nes-progress is-primary" value={100*newWaterLevel/lastWaterLevel} max="100"></progress>
+      <progress className="nes-progress is-primary" value={(100 * newWaterLevel) / lastWaterLevel} max="100"></progress>
     </div>
   );
 }
@@ -323,59 +322,71 @@ function _extrapolateBranches(pstate) {
   const tickRate = 36; // TODO 3600
 
   function parseGenes(dnaStr) {
-    const OFFSETS = { SPECIES: 0*3,
-                      GROWTH : 1*3,
-                      MATURE : 2*3, // TODO how soon it starts fruiting
-                      ABSORB : 3*3,
-                      FERTILE: 4*3, // TODO affects potential fruit bounty
-                      FRUIT  : 5*3,
-                      LONG   : 6*3,
-                      WEAK   : 7*3,
-                      DIE    : 8*3,
-                      COLOR  : 9*3, // special case of 5 bits
-                    };
+    const OFFSETS = {
+      SPECIES: 0 * 3,
+      GROWTH: 1 * 3,
+      MATURE: 2 * 3, // TODO how soon it starts fruiting
+      ABSORB: 3 * 3,
+      FERTILE: 4 * 3, // TODO affects potential fruit bounty
+      FRUIT: 5 * 3,
+      LONG: 6 * 3,
+      WEAK: 7 * 3,
+      DIE: 8 * 3,
+      COLOR: 9 * 3, // special case of 5 bits
+    };
     const genes = {};
     for (let key in OFFSETS) {
-      genes[key.toLowerCase()] = parseInt(dnaStr.slice(OFFSETS[key], OFFSETS[key] + (key == 'COLOR' ? 5 : 3)), 2);
+      genes[key.toLowerCase()] = parseInt(dnaStr.slice(OFFSETS[key], OFFSETS[key] + (key == "COLOR" ? 5 : 3)), 2);
     }
     return genes;
   }
 
   const Genes = parseGenes(pstate.dna.toString(2));
 
-  const factor = (name) => 1 + Genes[name] * .04; // XXX assumes 4% effect per unit for each gene
-  const landSpeciesMatchFactor = () => 1 - .04 * max(5, Math.abs(factor('species') - pstate.landSpecies));
+  const factor = name => 1 + Genes[name] * 0.04; // XXX assumes 4% effect per unit for each gene
+  const landSpeciesMatchFactor = () => 1 - 0.04 * max(5, Math.abs(factor("species") - pstate.landSpecies));
 
   const MAX_ABSORB = 500;
   const FRAILTY_THRESH = 5000;
 
-  const branchLinearRate = 1.0 // base rate per hour
+  const branchLinearRate = 1.0; // base rate per hour
   const wetWeakenRate = 0.05;
   const dryWeakenRate = 0.2;
   const strengthenRate = 0.1;
   const deathRate = 0.1;
 
   // redefine 'time' to mean seconds of specified 1 hour spent in wet/dry state
-  const wetTime = (tbox) => max(0, (min(tbox.h2oTil, tbox.t1) - max(tbox.h2oFrom, tbox.t0)))/tickRate;
-  const dryTime = (tbox) => (max(tbox.h2oTil, tbox.t1) - max(tbox.h2oTil, tbox.t0))/tickRate;
-  const anyTime = (tbox) => (tbox.t1 - max(tbox.h2oFrom, tbox.t0))/tickRate;
+  const wetTime = tbox => max(0, min(tbox.h2oTil, tbox.t1) - max(tbox.h2oFrom, tbox.t0)) / tickRate;
+  const dryTime = tbox => (max(tbox.h2oTil, tbox.t1) - max(tbox.h2oTil, tbox.t0)) / tickRate;
+  const anyTime = tbox => (tbox.t1 - max(tbox.h2oFrom, tbox.t0)) / tickRate;
 
   // TimeBox = { t0, t1, h2oFrom, h2oTil }
-  const wetGrowth = (tbox, norm) => wetTime(tbox) * factor('growth') * (branchLinearRate + Math.sqrt(norm));
-  const wetWeaken = (tbox, norm) => wetTime(tbox) * factor('weak')/2 * wetWeakenRate * norm;
-  const dryWeaken = (tbox, norm) => dryTime(tbox) * factor('weak')/2 * dryWeakenRate * norm;
+  const wetGrowth = (tbox, norm) => wetTime(tbox) * factor("growth") * (branchLinearRate + Math.sqrt(norm));
+  const wetWeaken = (tbox, norm) => ((wetTime(tbox) * factor("weak")) / 2) * wetWeakenRate * norm;
+  const dryWeaken = (tbox, norm) => ((dryTime(tbox) * factor("weak")) / 2) * dryWeakenRate * norm;
   const wetStrengthen = (tbox, weak) => wetTime(tbox) * strengthenRate * weak;
-  const normBranchGrowth = (tbox, norm, weak, frailty) => wetGrowth(tbox, norm) - frailty * wetWeaken(tbox, norm) + wetStrengthen(tbox, weak) - frailty * dryWeaken(tbox, norm);
-  const weakBranchGrowth = (tbox, norm, weak, frailty) =>                         frailty * wetWeaken(tbox, norm) - wetStrengthen(tbox, weak) + frailty * dryWeaken(tbox, norm) - deadBranchGrowth(tbox, weak);
-  const deadBranchGrowth = (tbox, weak) => factor('die') * deathRate * anyTime(tbox) * weak;
+  const normBranchGrowth = (tbox, norm, weak, frailty) =>
+    wetGrowth(tbox, norm) -
+    frailty * wetWeaken(tbox, norm) +
+    wetStrengthen(tbox, weak) -
+    frailty * dryWeaken(tbox, norm);
+  const weakBranchGrowth = (tbox, norm, weak, frailty) =>
+    frailty * wetWeaken(tbox, norm) -
+    wetStrengthen(tbox, weak) +
+    frailty * dryWeaken(tbox, norm) -
+    deadBranchGrowth(tbox, weak);
+  const deadBranchGrowth = (tbox, weak) => factor("die") * deathRate * anyTime(tbox) * weak;
 
-
-  let [norm, weak, dead] = [floatEth(pstate.lastNormalBranch), floatEth(pstate.lastWeakBranch), floatEth(pstate.lastDeadBranch)];
+  let [norm, weak, dead] = [
+    floatEth(pstate.lastNormalBranch),
+    floatEth(pstate.lastWeakBranch),
+    floatEth(pstate.lastDeadBranch),
+  ];
   console.log(typeof norm);
   const h2oFrom = pstate.lastWateredAt;
-  const h2oTil = h2oFrom + floatEth(pstate.lastWaterLevel) / floatEth(pstate.lastWaterUseRate) * 36;
-  let tbox = {t0: h2oFrom, t1: null, h2oFrom, h2oTil: h2oTil};
-  let snow = (+new Date()) / 1000;
+  const h2oTil = h2oFrom + (floatEth(pstate.lastWaterLevel) / floatEth(pstate.lastWaterUseRate)) * 36;
+  let tbox = { t0: h2oFrom, t1: null, h2oFrom, h2oTil: h2oTil };
+  let snow = +new Date() / 1000;
   const frailty = 1; // TODO
   while (tbox.t0 < snow) {
     tbox.t1 = min(snow, tbox.t0 + tickRate);
@@ -388,7 +399,6 @@ function _extrapolateBranches(pstate) {
     tbox.t0 += tickRate;
   }
   return [norm, weak, dead];
-
 }
 
 function DisplayBranches({ state, lastDeadPruned }) {
@@ -407,11 +417,11 @@ function DisplayBranches({ state, lastDeadPruned }) {
   return (
     <div>
       <span style={{ color: "black" }}>Normal Branches: {norm}</span>
-      <progress className="nes-progress is-success" value={100 * norm / sum} max="100"></progress>
+      <progress className="nes-progress is-success" value={(100 * norm) / sum} max="100"></progress>
       <span style={{ color: "black" }}>Weak Branches: {weak}</span>
-      <progress className="nes-progress is-warning" value={100 * weak / sum} max="100"></progress>
+      <progress className="nes-progress is-warning" value={(100 * weak) / sum} max="100"></progress>
       <span style={{ color: "black" }}>Dead Branches: {dead}</span>
-      <progress className="nes-progress is-error" value={100 * dead / sum} max="100"></progress>
+      <progress className="nes-progress is-error" value={(100 * dead) / sum} max="100"></progress>
       <span style={{ color: "black" }}>Pruned Branches: {utils.formatEther(lastDeadPruned)}</span>
       <progress className="nes-progress is-pattern" value={utils.formatEther(lastDeadPruned)} max="100"></progress>
     </div>
@@ -433,7 +443,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
 
   const [secs, setSecs] = useState(0);
   useEffect(() => {
-    console.log('New interval set');
+    console.log("New interval set");
     const interval = setInterval(() => {
       setSecs(secs => secs + 1);
     }, 1000);
@@ -502,9 +512,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            <span style={{ color: "black" }}>
-              {plantState ? <CountWaterLevel state={plantState} /> : "loading.."}
-            </span>
+            <span style={{ color: "black" }}>{plantState ? <CountWaterLevel state={plantState} /> : "loading.."}</span>
 
             <button
               type="button"
@@ -582,14 +590,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            {plantState ? (
-              <DisplayBranches
-                state={plantState}
-                lastDeadPruned={plantState[6]._hex}
-              />
-            ) : (
-              "loading..."
-            )}
+            {plantState ? <DisplayBranches state={plantState} lastDeadPruned={plantState[6]._hex} /> : "loading..."}
             <button
               type="button"
               style={{ margin: 10 }}
