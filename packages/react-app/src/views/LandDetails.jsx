@@ -121,7 +121,7 @@ function GetSeedsList({
           <div>
             <h4 style={{ color: "white" }}>{chooseStr}</h4>
             {ownedUnplantedList.map(seed => (
-              <DisplaySeedsList seed={seed} setPlantId={setPlantId} />
+              <DisplaySeedsList key={'slist-'+seed._hex} seed={seed} setPlantId={setPlantId} />
             ))}
             <Button
               style={{ margin: 5 }}
@@ -286,9 +286,9 @@ export default function LandDetail({
                     <p className="title">Currently viewing</p>
                     <div className="nes-select" style={{ display: "inline-block", width: 150 }}>
                       <span>Latitude:</span>
-                      <select required id="default_select" style={{ color: "black" }}>
+                      <select defaultValue={parseInt(id / 32)} value={parseInt(id / 32)} required id="default_select" style={{ color: "black" }}>
                         {range.map(idx => (
-                          <option value={idx} selected={idx == parseInt(id / 32)}>
+                          <option key={'lat-'+idx} value={idx}>
                             {idx}
                           </option>
                         ))}
@@ -296,9 +296,9 @@ export default function LandDetail({
                     </div>
                     <div className="nes-select" style={{ display: "inline-block", width: 150 }}>
                       <span>Longitude:</span>
-                      <select required id="default_select" style={{ color: "black" }}>
+                      <select defaultValue={id % 32} value={id % 32} required id="default_select" style={{ color: "black" }}>
                         {range.map(idx => (
-                          <option value={idx} selected={idx == id % 32}>
+                          <option key={'long-'+idx} value={idx}>
                             {idx}
                           </option>
                         ))}
