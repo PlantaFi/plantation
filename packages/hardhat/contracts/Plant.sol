@@ -136,7 +136,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
     /// Plant a plant into a land
 
     /// Water a plant
-    function water(uint256 plantId) external {
+    function water(uint256 plantId) public {
         PlantState storage plant = plantStates[plantId];
         updateState(plant);
         plant.lastWaterLevel = waterAbsorbed(traitFactor(Trait.ABSORB, plant.dna), plant.lastNormalBranch);
@@ -330,6 +330,7 @@ contract Plant is ERC721, ERC721Enumerable, VRFConsumerBase {
         (, uint8[] memory species, uint32[] memory burns) = land.landDetailsByDistance(landId, 0);
         plant.landSpecies = species[0];
         plant.landBurns = burns[0]; // not PRBU
+        water(plantId);
     }
 
     function burn(uint256 plantId, address sender) public {
