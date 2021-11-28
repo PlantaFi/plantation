@@ -139,7 +139,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                 textAlign: "center",
               }}
             >
-              <h1>Plantaland World Map</h1>
+              <h1 style={{ fontSize: 21, marginLeft: 21 }}>Plantaland World Map</h1>
               <div
                 style={{
                   /*overflow: "scroll scroll", height: 550,*/ paddingTop: 20,
@@ -157,7 +157,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                     width: 120,
                   }}
                 />
-                <div style={{ width: 650, margin: "auto" }}>
+                <div style={{ width: '100%', margin: "auto" }}>
                   <div>
                     <button
                       type="button"
@@ -170,72 +170,74 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
                       North
                     </button>
                   </div>
-                  <div
-                    style={{
-                      width: 140,
-                      height: 300,
-                      float: "left",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      style={{ margin: 10 }}
-                      className="nes-btn"
-                      onClick={() => {
-                        if (currenty > 4) setCurrenty(currenty - 4);
+                  <div style={{width:625, margin: 'auto'}}>
+                    <div
+                      style={{
+                        width: 140,
+                        height: 300,
+                        display: "flex",
+                        float: 'left',
+                        alignItems: "center",
                       }}
                     >
-                      &lt; West
-                    </button>
-                  </div>
-                  <div
-                    style={{
-                      height: 300,
-                      float: "right",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      style={{ margin: 10 }}
-                      className="nes-btn"
-                      onClick={() => {
-                        if (currenty < 28) setCurrenty(currenty + 4);
+                      <button
+                        type="button"
+                        style={{ margin: 10 }}
+                        className="nes-btn"
+                        onClick={() => {
+                          if (currenty > 4) setCurrenty(currenty - 4);
+                        }}
+                      >
+                        &lt; West
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        border: "4px solid #54dfff",
+                        padding: 4,
+                        width: 342,
+                        display: "inline-block",
+                        backgroundColor: "black",
                       }}
                     >
-                      East &gt;
-                    </button>
-                  </div>
-                  <div
-                    style={{
-                      border: "4px solid #54dfff",
-                      padding: 4,
-                      width: 342,
-                      display: "inline-block",
-                      backgroundColor: "black",
-                    }}
-                  >
-                    <div style={{ border: "4px solid lightgray", padding: 4, backgroundColor: "black" }}>
-                      <div style={{ border: "4px solid gray", padding: 4, backgroundColor: "black" }}>
-                        {landinfodistance ? (
-                          <MapDesign
-                            distanceInfo={landinfodistance}
-                            distance={distance}
-                            readContracts={readContracts}
-                            writeContracts={writeContracts}
-                            setPlantId={setPlantId}
-                            setIsMinted={setIsMinted}
-                            setIsPlanted={setIsPlanted}
-                            setLandTokenId={setLandTokenId}
-                            setOwnerAddress={setOwnerAddress}
-                          />
-                        ) : (
-                          "loading.."
-                        )}
+                      <div style={{ border: "4px solid lightgray", padding: 4, backgroundColor: "black" }}>
+                        <div style={{ border: "4px solid gray", padding: 4, backgroundColor: "black" }}>
+                          {landinfodistance ? (
+                            <MapDesign
+                              distanceInfo={landinfodistance}
+                              distance={distance}
+                              readContracts={readContracts}
+                              writeContracts={writeContracts}
+                              setPlantId={setPlantId}
+                              setIsMinted={setIsMinted}
+                              setIsPlanted={setIsPlanted}
+                              setLandTokenId={setLandTokenId}
+                              setOwnerAddress={setOwnerAddress}
+                            />
+                          ) : (
+                            "loading.."
+                          )}
+                        </div>
                       </div>
+                    </div>
+                    <div
+                      style={{
+                        height: 300,
+                        float: "right",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        style={{ margin: 10 }}
+                        className="nes-btn"
+                        onClick={() => {
+                          if (currenty < 28) setCurrenty(currenty + 4);
+                        }}
+                      >
+                        East &gt;
+                      </button>
                     </div>
                   </div>
                   <button
