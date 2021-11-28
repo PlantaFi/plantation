@@ -123,9 +123,11 @@ const getTreeStyle = (species, treeState, fruitCount) => {
     objectPosition: calcTreePos(species, treeState, fruitCount),
     width: 96,
     height: 128,
-    /*    position: "absolute",*/
-    top: /*-64*/ 0,
-    margin: 50,
+    /*    position: "absolute",
+    top: -64, */
+    marginTop: 32,
+    zoom: '150%',
+
   };
 };
 
@@ -171,7 +173,7 @@ function CountTreeStage({ sum }) {
 function PlantImage({ species, treeState, fruit }) {
   return (
     <div>
-      <img width={200} height={200} src={fruitTreePng} style={getTreeStyle(species, treeState, fruit)} />
+      <img src={fruitTreePng} style={getTreeStyle(species, treeState, fruit)} />
     </div>
   );
 }
@@ -188,8 +190,8 @@ function DisplayPlantImage({ plantDNA, isAlive, lastNormalBranch, lastWeakBranch
   if (!isAlive) {
     treeState = 5;
   }
-  console.log("treeState " + treeState);
-  console.log("sum " + sum);
+  //console.log("treeState " + treeState);
+  //console.log("sum " + sum);
 
   return (
     <div>
@@ -268,15 +270,17 @@ function CountWaterLevel({ state }) {
   // lastWateredAt
   let nowish = +new Date() / 1000;
   //const _last = state.lastWateredAt.toNumber();
+console.log(state);
   const initWateredAt = state.lastWateredAt.toNumber();
   const _last = state.lastUpdatedAt.toNumber();
+  if (nowish < _last) { nowish = _last };
   const hoursElapsed = (nowish - _last) / 3600;
   const lastWaterTicks = floatEth(state.lastWaterTicks);
   const ticksElapsed = (nowish - initWateredAt) / 36; // TODO 36 to 3600
   const lastWaterLevel = utils.formatEther(state.lastWaterLevel);
   const lastWaterUseRate = utils.formatEther(state.lastWaterUseRate);
   const newWaterLevel = lastWaterLevel - hoursElapsed * lastWaterUseRate;
-  console.log(`Ticks: ${ticksElapsed} + ${lastWaterTicks}`);
+  console.log(`LWL: ${lastWaterLevel} / Ticks: ${ticksElapsed} + ${lastWaterTicks}`);
   return (
     <div>
       Water Level: {lastWaterLevel}
@@ -299,7 +303,7 @@ function DisplayBurn({ isAlive, tx, writeContracts, landTokenId }) {
           <button
             type="button"
             style={{ margin: 10 }}
-            class="nes-btn is-error"
+            className="nes-btn is-error"
             onClick={async () => {
               const result = tx(writeContracts.Land.handleBurn(landTokenId), update => {
                 console.log("📡 Transaction Update:", update);
@@ -455,10 +459,11 @@ function DisplayFruits({ flowers, lastFertilizedAt }) {
   if (nowish < _last + ripenTime) {
     ripeAmount = ripeAmount * (nowish - _last) / ripenTime;
   }
+  const pct = floatEth(flowers) > 0 ? 100 * ripeAmount / floatEth(flowers) : 0;
   return (
     <div>
       <span style={{ color: "black" }}>Ripe / Fruit: {ripeAmount} / {floatEth(flowers)}</span>
-      <progress className="nes-progress " value={100 * ripeAmount / floatEth(flowers)} max="100"></progress>
+      <progress className="nes-progress " value={pct} max="100"></progress>
     </div>
   );
 }
@@ -483,9 +488,8 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
 
       <div className="nes-container is-rounded is-dark with-title">
         <p className="title">Plant</p>
-
-        <div style={{ width: 320, height: 200, position: "absolute", left: 100, top: 100 }}>
-          <div style={{ backgroundColor: "white", padding: 32 }}>
+        <div style={{ width: '50%', display: 'inline-block', verticalAlign: 'top'}}> <div style={{ textAlign: 'center' }}>
+          <div style={{ backgroundColor: "white", padding: 32, maxWidth: 320, margin: 'auto' }}>
             <div className="nes-container is-rounded with-title">
               <p className="title" style={{ color: "black" }}>
                 Species
@@ -505,7 +509,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             </div>
           </div>
         </div>
-        <div style={{ display: "inline-block", width: "40%", margin: "40px" }}>
+        <div style={{ margin: "50px 0" }}>
           <div style={{ position: "relative", top: -40 }}>
             <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
 
@@ -532,7 +536,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
               )}
             </div>
           </div>
-        </div>
+        </div></div>
         <div style={{ display: "inline-block", width: "50%" }}>
           <div
             className="nes-container is-rounded notis-dark"
@@ -543,7 +547,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn is-primary"
+              className="nes-btn is-primary"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.water(plantId), update => {
                   console.log("📡 Transaction Update:", update);
@@ -588,7 +592,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
             <button
               type="button"
               style={{ margin: 10 }}
-              class="nes-btn is-success"
+              className="nes-btn is-success"
               onClick={async () => {
                 const result = tx(writeContracts.Plant.harvest(plantId), update => {
                   console.log("📡 Transaction Update:", update);
