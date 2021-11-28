@@ -126,8 +126,7 @@ const getTreeStyle = (species, treeState, fruitCount) => {
     /*    position: "absolute",
     top: -64, */
     marginTop: 32,
-    zoom: '150%',
-
+    zoom: "150%",
   };
 };
 
@@ -200,15 +199,16 @@ function DisplayPlantImage({ plantDNA, isAlive, lastNormalBranch, lastWeakBranch
   );
 }
 
-function GetApproveMatics({ address, plantId, readContracts, plantAddress, writeContracts, tx }) {
+function GetApproveMatics({ address, plantId, readContracts, plantAddress, writeContracts, tx, isAlive }) {
   const maticAllowance = useContractReader(readContracts, "FMatic", "allowance", [address, plantAddress]);
   return (
-    <div style={{display: 'inline-block'}}>
+    <div style={{ display: "inline-block" }}>
       {maticAllowance > 0 ? (
         <button
           type="button"
           style={{ margin: 10 }}
           className="nes-btn is-success"
+          disabled={!isAlive}
           onClick={async () => {
             const result = tx(writeContracts.Plant.fertilize(plantId), update => {
               console.log("📡 Transaction Update:", update);
@@ -236,6 +236,7 @@ function GetApproveMatics({ address, plantId, readContracts, plantAddress, write
           type="button"
           style={{ margin: 10 }}
           className="nes-btn is-success"
+          disabled={!isAlive}
           onClick={async () => {
             const result = tx(writeContracts.FMatic.approve(plantAddress, utils.parseEther("1000")), update => {
               console.log("📡 Transaction Update:", update);
@@ -270,10 +271,12 @@ function CountWaterLevel({ state }) {
   // lastWateredAt
   let nowish = +new Date() / 1000;
   //const _last = state.lastWateredAt.toNumber();
-console.log(state);
+  console.log(state);
   const initWateredAt = state.lastWateredAt.toNumber();
   const _last = state.lastUpdatedAt.toNumber();
-  if (nowish < _last) { nowish = _last };
+  if (nowish < _last) {
+    nowish = _last;
+  }
   const hoursElapsed = (nowish - _last) / 3600;
   const lastWaterTicks = floatEth(state.lastWaterTicks);
   const ticksElapsed = (nowish - initWateredAt) / 36; // TODO 36 to 3600
@@ -284,8 +287,12 @@ console.log(state);
   return (
     <div>
       Water Level: {lastWaterLevel}
-      <progress className="nes-progress is-primary" value={(100.0 * lastWaterTicks) / (lastWaterTicks + ticksElapsed)} max="100"></progress>
-      {lastWaterTicks == 0 ? (<span className='nes-text is-error'>DRY!</span>) : ''}
+      <progress
+        className="nes-progress is-primary"
+        value={(100.0 * lastWaterTicks) / (lastWaterTicks + ticksElapsed)}
+        max="100"
+      ></progress>
+      {lastWaterTicks == 0 ? <span className="nes-text is-error">DRY!</span> : ""}
     </div>
   );
 }
@@ -439,15 +446,21 @@ function DisplayBranches({ state, lastDeadPruned }) {
   return (
     <div>
       <div>
-        {norm && <div style={{width: 100*norm/sum + '%', display: 'inline-block', paddingRight: 4}}>
-          <progress className="nes-progress is-success" style={{}} value="100" max="100"></progress>
-        </div>}
-        {weak && <div style={{width: 100*weak/sum + '%', display: 'inline-block', paddingRight: 4}}>
-          <progress className="nes-progress is-warning" style={{}} value="100" max="100"></progress>
-        </div>}
-        {dead && <div style={{width: 100*dead/sum + '%', display: 'inline-block'}}>
-          <progress className="nes-progress is-error" style={{ }} value="100" max="100"></progress>
-        </div>}
+        {norm && (
+          <div style={{ width: (100 * norm) / sum + "%", display: "inline-block", paddingRight: 4 }}>
+            <progress className="nes-progress is-success" style={{}} value="100" max="100"></progress>
+          </div>
+        )}
+        {weak && (
+          <div style={{ width: (100 * weak) / sum + "%", display: "inline-block", paddingRight: 4 }}>
+            <progress className="nes-progress is-warning" style={{}} value="100" max="100"></progress>
+          </div>
+        )}
+        {dead && (
+          <div style={{ width: (100 * dead) / sum + "%", display: "inline-block" }}>
+            <progress className="nes-progress is-error" style={{}} value="100" max="100"></progress>
+          </div>
+        )}
       </div>
       <div style={{ color: "black" }}>Normal: {norm}</div>
       <div style={{ color: "black" }}>Weak: {weak}</div>
@@ -465,12 +478,14 @@ function DisplayFruits({ flowers, lastFertilizedAt }) {
   let nowish = +new Date() / 1000;
   nowish = nowish < _last ? _last : nowish; // if now in past
   if (nowish < _last + ripenTime) {
-    ripeAmount = ripeAmount * (nowish - _last) / ripenTime;
+    ripeAmount = (ripeAmount * (nowish - _last)) / ripenTime;
   }
-  const pct = floatEth(flowers) > 0 ? 100 * ripeAmount / floatEth(flowers) : 0;
+  const pct = floatEth(flowers) > 0 ? (100 * ripeAmount) / floatEth(flowers) : 0;
   return (
     <div>
-      <span style={{ color: "black" }}>Ripe / Fruit: {ripeAmount} / {floatEth(flowers)}</span>
+      <span style={{ color: "black" }}>
+        Ripe / Fruit: {ripeAmount} / {floatEth(flowers)}
+      </span>
       <progress className="nes-progress " value={pct} max="100"></progress>
     </div>
   );
@@ -496,96 +511,109 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
 
       <div className="nes-container is-rounded is-dark with-title">
         <p className="title">Plant</p>
-        <div style={{ width: '50%', display: 'inline-block', verticalAlign: 'top'}}> <div style={{ textAlign: 'center' }}>
-          <div style={{ backgroundColor: "white", padding: 32, maxWidth: 320, margin: 'auto' }}>
-            <div className="nes-container is-rounded with-title">
-              <p className="title" style={{ color: "black" }}>
-                Species
-              </p>
-              {plantState ? (
-                <DisplayPlantImage
-                  plantDNA={plantState[0]}
-                  isAlive={plantState[1]}
-                  lastNormalBranch={plantState[3]._hex}
-                  lastWeakBranch={plantState[4]._hex}
-                  lastDeadBranch={plantState[5]._hex}
-                  lastDeadPruned={plantState[6]._hex}
-                />
-              ) : (
-                "loading..."
-              )}
+        <div style={{ width: "50%", display: "inline-block", verticalAlign: "top" }}>
+          {" "}
+          <div style={{ textAlign: "center" }}>
+            <div style={{ backgroundColor: "white", padding: 32, maxWidth: 320, margin: "auto" }}>
+              <div className="nes-container is-rounded with-title">
+                <p className="title" style={{ color: "black" }}>
+                  Species
+                </p>
+                {plantState ? (
+                  <DisplayPlantImage
+                    plantDNA={plantState[0]}
+                    isAlive={plantState[1]}
+                    lastNormalBranch={plantState[3]._hex}
+                    lastWeakBranch={plantState[4]._hex}
+                    lastDeadBranch={plantState[5]._hex}
+                    lastDeadPruned={plantState[6]._hex}
+                  />
+                ) : (
+                  "loading..."
+                )}
+              </div>
+            </div>
+          </div>
+          <div style={{ margin: "50px 0" }}>
+            <div style={{ position: "relative", top: -40 }}>
+              <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
+
+              <div className="nes-container is-rounded is-dark"> DNA: {plantState && plantState.dna.toString(16)} </div>
+
+              <div className="nes-container is-rounded is-dark">
+                <span>
+                  Landowner: <Address address={address} /*ensProvider={mainnetProvider}*/ fontSize={16} />
+                </span>
+              </div>
+
+              <div className="nes-container is-rounded is-dark">
+                <span>
+                  Coordinates: {plantState ? <Getcoordination coordination={plantState[12]} /> : "loading..."}
+                </span>
+              </div>
+
+              <div className="nes-container is-rounded is-dark" style={{}}>
+                {plantState ? (
+                  <DisplayBurn
+                    isAlive={plantState[1]}
+                    tx={tx}
+                    writeContracts={writeContracts}
+                    landTokenId={plantState[12]}
+                  />
+                ) : (
+                  "loading"
+                )}
+              </div>
             </div>
           </div>
         </div>
-        <div style={{ margin: "50px 0" }}>
-          <div style={{ position: "relative", top: -40 }}>
-            <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
-
-            <div className="nes-container is-rounded is-dark"> DNA: {plantState && plantState.dna.toString(16)} </div>
-
-            <div className="nes-container is-rounded is-dark">
-              <span>
-                Landowner: <Address address={address} /*ensProvider={mainnetProvider}*/ fontSize={16} />
-              </span>
-            </div>
-
-            <div className="nes-container is-rounded is-dark">
-              <span>Coordinates: {plantState ? <Getcoordination coordination={plantState[12]} /> : "loading..."}</span>
-            </div>
-
-            <div className="nes-container is-rounded is-dark" style={{}}>
-              {plantState ? (
-                <DisplayBurn
-                  isAlive={plantState[1]}
-                  tx={tx}
-                  writeContracts={writeContracts}
-                  landTokenId={plantState[12]}
-                />
-              ) : (
-                "loading"
-              )}
-            </div>
-          </div>
-        </div></div>
         <div style={{ display: "inline-block", width: "50%" }}>
           <div
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
             <span style={{ color: "black" }}>{plantState ? <CountWaterLevel state={plantState} /> : "loading.."}</span>
-
-            <button
-              type="button"
-              style={{ margin: 10 }}
-              className="nes-btn is-primary"
-              onClick={async () => {
-                const result = tx(writeContracts.Plant.water(plantId), update => {
-                  console.log("📡 Transaction Update:", update);
-                  if (update && (update.status === "confirmed" || update.status === 1)) {
-                    console.log(" 🍾 Transaction " + update.hash + " finished!");
-                    console.log(
-                      " ⛽️ " +
-                        update.gasUsed +
-                        "/" +
-                        (update.gasLimit || update.gas) +
-                        " @ " +
-                        parseFloat(update.gasPrice) / 1000000000 +
-                        " gwei",
-                    );
-                  }
-                });
-                console.log("awaiting metamask/web3 confirm result...", result);
-                console.log(await result);
-              }}
-            >
-              Water
-            </button>
+            {plantState ? (
+              <button
+                type="button"
+                style={{ margin: 10 }}
+                disabled={!plantState[1]}
+                className="nes-btn is-primary"
+                onClick={async () => {
+                  const result = tx(writeContracts.Plant.water(plantId), update => {
+                    console.log("📡 Transaction Update:", update);
+                    if (update && (update.status === "confirmed" || update.status === 1)) {
+                      console.log(" 🍾 Transaction " + update.hash + " finished!");
+                      console.log(
+                        " ⛽️ " +
+                          update.gasUsed +
+                          "/" +
+                          (update.gasLimit || update.gas) +
+                          " @ " +
+                          parseFloat(update.gasPrice) / 1000000000 +
+                          " gwei",
+                      );
+                    }
+                  });
+                  console.log("awaiting metamask/web3 confirm result...", result);
+                  console.log(await result);
+                }}
+              >
+                Water
+              </button>
+            ) : (
+              ""
+            )}
           </div>
           <div
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            {plantState ? <DisplayFruits flowers={plantState[15]} lastFertilizedAt={plantState.lastFertilizedAt} /> : "loading..."}
+            {plantState ? (
+              <DisplayFruits flowers={plantState[15]} lastFertilizedAt={plantState.lastFertilizedAt} />
+            ) : (
+              "loading..."
+            )}
 
             {plantState ? (
               <GetApproveMatics
@@ -595,68 +623,81 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
                 plantAddress={readContracts.Plant.address}
                 writeContracts={writeContracts}
                 tx={tx}
+                isAlive={plantState[1]}
               />
             ) : (
               ""
             )}
-            <button
-              type="button"
-              style={{ margin: 10 }}
-              className="nes-btn is-success"
-              onClick={async () => {
-                const result = tx(writeContracts.Plant.harvest(plantId), update => {
-                  console.log("📡 Transaction Update:", update);
-                  if (update && (update.status === "confirmed" || update.status === 1)) {
-                    console.log(" 🍾 Transaction " + update.hash + " finished!");
-                    console.log(
-                      " ⛽️ " +
-                        update.gasUsed +
-                        "/" +
-                        (update.gasLimit || update.gas) +
-                        " @ " +
-                        parseFloat(update.gasPrice) / 1000000000 +
-                        " gwei",
-                    );
-                  }
-                });
-                console.log("awaiting metamask/web3 confirm result...", result);
-                console.log(await result);
-              }}
-            >
-              Harvest
-            </button>
+            {plantState ? (
+              <button
+                type="button"
+                style={{ margin: 10 }}
+                disabled={!plantState[1]}
+                className="nes-btn is-success"
+                onClick={async () => {
+                  const result = tx(writeContracts.Plant.harvest(plantId), update => {
+                    console.log("📡 Transaction Update:", update);
+                    if (update && (update.status === "confirmed" || update.status === 1)) {
+                      console.log(" 🍾 Transaction " + update.hash + " finished!");
+                      console.log(
+                        " ⛽️ " +
+                          update.gasUsed +
+                          "/" +
+                          (update.gasLimit || update.gas) +
+                          " @ " +
+                          parseFloat(update.gasPrice) / 1000000000 +
+                          " gwei",
+                      );
+                    }
+                  });
+                  console.log("awaiting metamask/web3 confirm result...", result);
+                  console.log(await result);
+                }}
+              >
+                Harvest
+              </button>
+            ) : (
+              ""
+            )}
           </div>
           <div
             className="nes-container is-rounded notis-dark"
             style={{ margin: "10px", width: "97%", textAlign: "left", backgroundColor: "white" }}
           >
-            {plantState ? <DisplayBranches state={plantState} lastDeadPruned={plantState[6]._hex} /> : "loading..."}
-            <button
-              type="button"
-              style={{ margin: 10 }}
-              className="nes-btn is-warning"
-              onClick={async () => {
-                const result = tx(writeContracts.Plant.prune(plantId), update => {
-                  console.log("📡 Transaction Update:", update);
-                  if (update && (update.status === "confirmed" || update.status === 1)) {
-                    console.log(" 🍾 Transaction " + update.hash + " finished!");
-                    console.log(
-                      " ⛽️ " +
-                        update.gasUsed +
-                        "/" +
-                        (update.gasLimit || update.gas) +
-                        " @ " +
-                        parseFloat(update.gasPrice) / 1000000000 +
-                        " gwei",
-                    );
-                  }
-                });
-                console.log("awaiting metamask/web3 confirm result...", result);
-                console.log(await result);
-              }}
-            >
-              Prune
-            </button>
+            {plantState ? (
+              <div>
+                <DisplayBranches state={plantState} lastDeadPruned={plantState[6]._hex} />
+                <button
+                  type="button"
+                  style={{ margin: 10 }}
+                  disabled={!plantState[1]}
+                  className="nes-btn is-warning"
+                  onClick={async () => {
+                    const result = tx(writeContracts.Plant.prune(plantId), update => {
+                      console.log("📡 Transaction Update:", update);
+                      if (update && (update.status === "confirmed" || update.status === 1)) {
+                        console.log(" 🍾 Transaction " + update.hash + " finished!");
+                        console.log(
+                          " ⛽️ " +
+                            update.gasUsed +
+                            "/" +
+                            (update.gasLimit || update.gas) +
+                            " @ " +
+                            parseFloat(update.gasPrice) / 1000000000 +
+                            " gwei",
+                        );
+                      }
+                    });
+                    console.log("awaiting metamask/web3 confirm result...", result);
+                    console.log(await result);
+                  }}
+                >
+                  Prune
+                </button>
+              </div>
+            ) : (
+              "loading..."
+            )}
           </div>
         </div>
       </div>
