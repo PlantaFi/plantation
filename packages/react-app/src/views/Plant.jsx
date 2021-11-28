@@ -521,7 +521,7 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
           <div style={{ position: "relative", top: -40 }}>
             <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
 
-            <div className="nes-container is-rounded is-dark"> DNA: {plantState.dna.toString(16)} </div>
+            <div className="nes-container is-rounded is-dark"> DNA: {plantState && plantState.dna.toString(16)} </div>
 
             <div className="nes-container is-rounded is-dark">
               <span>
