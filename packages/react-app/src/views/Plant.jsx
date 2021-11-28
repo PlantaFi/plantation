@@ -446,23 +446,17 @@ function DisplayBranches({ state, lastDeadPruned }) {
   return (
     <div>
       <div>
-        {norm && (
-          <div style={{ width: (100 * norm) / sum + "%", display: "inline-block", paddingRight: 4 }}>
-            <progress className="nes-progress is-success" style={{}} value="100" max="100"></progress>
-          </div>
-        )}
-        {weak && (
-          <div style={{ width: (100 * weak) / sum + "%", display: "inline-block", paddingRight: 4 }}>
-            <progress className="nes-progress is-warning" style={{}} value="100" max="100"></progress>
-          </div>
-        )}
-        {dead && (
-          <div style={{ width: (100 * dead) / sum + "%", display: "inline-block" }}>
-            <progress className="nes-progress is-error" style={{}} value="100" max="100"></progress>
-          </div>
-        )}
+        {norm ? <div style={{width: 100*norm/sum + '%', display: 'inline-block', paddingRight: 4}}>
+          <progress className="nes-progress is-success" style={{}} value="100" max="100"></progress>
+        </div> : ''}
+        {weak ? <div style={{width: 100*weak/sum + '%', display: 'inline-block', paddingRight: 4}}>
+          <progress className="nes-progress is-warning" style={{}} value="100" max="100"></progress>
+        </div> : ''}
+        {dead ? <div style={{width: 100*dead/sum + '%', display: 'inline-block'}}>
+          <progress className="nes-progress is-error" style={{ }} value="100" max="100"></progress>
+        </div> : ''}
       </div>
-      <div style={{ color: "black" }}>Normal: {norm}</div>
+      <div style={{ color: "black" }}>Healthy branches: {norm}</div>
       <div style={{ color: "black" }}>Weak: {weak}</div>
       <div style={{ color: "black" }}>Dead: {dead}</div>
       <span style={{ color: "black" }}>Pruned Branches: {utils.formatEther(lastDeadPruned)}</span>
