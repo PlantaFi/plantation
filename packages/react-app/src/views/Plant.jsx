@@ -203,7 +203,7 @@ function DisplayPlantImage({ plantDNA, isAlive, lastNormalBranch, lastWeakBranch
 function GetApproveMatics({ address, plantId, readContracts, plantAddress, writeContracts, tx }) {
   const maticAllowance = useContractReader(readContracts, "FMatic", "allowance", [address, plantAddress]);
   return (
-    <div>
+    <div style={{display: 'inline-block'}}>
       {maticAllowance > 0 ? (
         <button
           type="button"
@@ -438,12 +438,20 @@ function DisplayBranches({ state, lastDeadPruned }) {
   const sum = norm + weak + dead;
   return (
     <div>
-      <span style={{ color: "black" }}>Normal Branches: {norm}</span>
-      <progress className="nes-progress is-success" value={(100 * norm) / sum} max="100"></progress>
-      <span style={{ color: "black" }}>Weak Branches: {weak}</span>
-      <progress className="nes-progress is-warning" value={(100 * weak) / sum} max="100"></progress>
-      <span style={{ color: "black" }}>Dead Branches: {dead}</span>
-      <progress className="nes-progress is-error" value={(100 * dead) / sum} max="100"></progress>
+      <div>
+        {norm && <div style={{width: 100*norm/sum + '%', display: 'inline-block', paddingRight: 4}}>
+          <progress className="nes-progress is-success" style={{}} value="100" max="100"></progress>
+        </div>}
+        {weak && <div style={{width: 100*weak/sum + '%', display: 'inline-block', paddingRight: 4}}>
+          <progress className="nes-progress is-warning" style={{}} value="100" max="100"></progress>
+        </div>}
+        {dead && <div style={{width: 100*dead/sum + '%', display: 'inline-block'}}>
+          <progress className="nes-progress is-error" style={{ }} value="100" max="100"></progress>
+        </div>}
+      </div>
+      <div style={{ color: "black" }}>Normal: {norm}</div>
+      <div style={{ color: "black" }}>Weak: {weak}</div>
+      <div style={{ color: "black" }}>Dead: {dead}</div>
       <span style={{ color: "black" }}>Pruned Branches: {utils.formatEther(lastDeadPruned)}</span>
       <progress className="nes-progress is-pattern" value={utils.formatEther(lastDeadPruned)} max="100"></progress>
     </div>
@@ -512,6 +520,8 @@ export default function Plant({ address, plantId, readContracts, writeContracts,
         <div style={{ margin: "50px 0" }}>
           <div style={{ position: "relative", top: -40 }}>
             <div className="nes-container is-rounded is-dark"> ID: #{plantId.toString().padStart(4, "0")} </div>
+
+            <div className="nes-container is-rounded is-dark"> DNA: {plantState.dna.toString(16)} </div>
 
             <div className="nes-container is-rounded is-dark">
               <span>
