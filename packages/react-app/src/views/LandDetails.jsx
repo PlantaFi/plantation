@@ -50,7 +50,7 @@ function BuyLand({ readContracts, writeContracts, landTokenId, address, tx, setO
                         parseFloat(update.gasPrice) / 1000000000 +
                         " gwei",
                     );
-                    setTransactionStatus("Transcation Succeed! You are the owner the land!");
+                    setTransactionStatus("Congratulations! You are now the owner this land!");
                   } else {
                     setBtnStaus(true);
                     setTransactionStatus("Land is Available!");
