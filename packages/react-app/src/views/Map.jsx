@@ -116,7 +116,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
     distance,
   ]);
 
-  console.log(landinfodistance);
+  //console.log(landinfodistance);
 
   return (
     <div>
@@ -267,32 +267,30 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
               */}
         </nav>
         <Switch>
-          <div>
-            <Route path="/landdetails">
-              <LandDetails
-                plantId={plantId}
-                isMinted={isMinted}
-                isPlanted={isPlanted}
-                landTokenId={landTokenId}
-                ownerAddress={ownerAddress}
-                readContracts={readContracts}
-                writeContracts={writeContracts}
-                address={address}
-                tx={tx}
-              />
-            </Route>
+          <Route path="/landdetails">
+            <LandDetails
+              plantId={plantId}
+              isMinted={isMinted}
+              isPlanted={isPlanted}
+              landTokenId={landTokenId}
+              ownerAddress={ownerAddress}
+              readContracts={readContracts}
+              writeContracts={writeContracts}
+              address={address}
+              tx={tx}
+            />
+          </Route>
 
-            <Route path="/plantUI">
-              <Plant
-                plantId={plantId}
-                landTokenId={landTokenId}
-                address={ownerAddress}
-                readContracts={readContracts}
-                writeContracts={writeContracts}
-                tx={tx}
-              />
-            </Route>
-          </div>
+          <Route path="/plantUI">
+            <Plant
+              plantId={plantId}
+              landTokenId={landTokenId}
+              address={ownerAddress}
+              readContracts={readContracts}
+              writeContracts={writeContracts}
+              tx={tx}
+            />
+          </Route>
         </Switch>
       </BrowserRouter>
     </div>

@@ -44,7 +44,7 @@ export default function PlantsList({ address, readContracts, writeContracts, tx 
                   {plantList.length > 0 ? (
                     <div>
                       {plantList.map(plantId => (
-                        <DisplayPlantsList plantId={plantId} setPlantId={setPlantId} />
+                        <DisplayPlantsList key={'plist-'+plantId} plantId={plantId} setPlantId={setPlantId} />
                       ))}
                     </div>
                   ) : (
@@ -58,17 +58,15 @@ export default function PlantsList({ address, readContracts, writeContracts, tx 
           </div>
         </nav>
         <Switch>
-          <div>
-            <Route path="/plantUI">
-              <Plant
-                plantId={plantId}
-                address={address}
-                readContracts={readContracts}
-                writeContracts={writeContracts}
-                tx={tx}
-              />
-            </Route>
-          </div>
+          <Route path="/plantUI">
+            <Plant
+              plantId={plantId}
+              address={address}
+              readContracts={readContracts}
+              writeContracts={writeContracts}
+              tx={tx}
+            />
+          </Route>
         </Switch>
       </BrowserRouter>
     </div>
