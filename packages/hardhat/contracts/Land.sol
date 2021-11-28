@@ -89,9 +89,8 @@ modifier hasFee() {
     _mapPlanted[_intIdx(landTokenId)] |= 2**255 >> _bitIdx(landTokenId);
   }
   function clearPlanted(uint16 landTokenId) public {
-    _mapPlanted[_intIdx(landTokenId)] &= ~(uint16(1) << _bitIdx(landTokenId));
+    _mapPlanted[_intIdx(landTokenId)] &= ~(uint256(1) << (uint16(255) - _bitIdx(landTokenId)));
   }
-
   // returns 1024 bits in order of tokenId where 1 if land there is claimed/owned already
   function mapMinted() external view returns (uint256[4] memory) {
     return _mapMinted;
@@ -112,9 +111,9 @@ modifier hasFee() {
     require(isPlanted(landTokenId), "Land had no Plant");
     uint256 plantTokenId = landProps[landTokenId].plantTokenId;
     clearPlanted(landTokenId);
-    landProps[landTokenId].burns.increment();
-    // plant.burn will revert if we cannot burn it
+    // plant.burn will revert if we cannot burn it. Must clear land before plant.burn()
     plant.burn(plantTokenId, msg.sender);
+    landProps[landTokenId].burns.increment();
   }
   // Returns a plantTokenId but will is UNDEFINED if unplanted. Check isPlanted.
   function plantByLand(uint16 landTokenId) public view returns (uint256) {
