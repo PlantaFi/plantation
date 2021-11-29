@@ -523,12 +523,7 @@ function App(props) {
                         this <Contract/> component will automatically parse your ABI
                         and give you a form to interact with it locally
                     */}
-            <PlantsList
-              address={address}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-            />
+            <Map address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
           </Route>
         
           <Route path="/banks">
@@ -739,6 +734,7 @@ function App(props) {
         {/*faucetHint*/}
       </div>
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
+      {targetNetwork == NETWORKS.localhost ? (
       <div
         style={{
           textAlign: "left",
@@ -800,6 +796,8 @@ function App(props) {
           </Col>
         </Row>
       </div>
+      ) : ''}
+      {targetNetwork == NETWORKS.localhost ? (
       <div className="nes-container with-title">
         <p className="title">Footer</p>
         <p>
@@ -819,6 +817,7 @@ function App(props) {
           </span>
         </p>
       </div>
+      ) : ''}
     </div>
   );
 }
