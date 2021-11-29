@@ -5,7 +5,7 @@ import React from "react";
 
 export default function Header() {
   return (
-    <a href="https://github.com/PlantaFi" target="_blank" rel="noopener noreferrer">
+    <a href="/" >
       <span className="buchs-long-dark" style={{
             fontFamily: "P0T-NOoDLE",
             display: 'inline-block',
