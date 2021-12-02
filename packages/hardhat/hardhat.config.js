@@ -73,6 +73,20 @@ module.exports = {
       
       */
     },
+    hardhat: {
+      mining: {
+        auto: true,
+        interval: 1000,
+      }
+      
+      //url: "http://localhost:8545",
+      /*      
+       *      A brand new blockchain, just with the genesis block.
+20 accounts with 10000 ETH each, generated with the mnemonic "test test test test test test test test test test test junk". Their addresses are:
+0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      
+      */
+    },
 
     // rinkeby: {
     //   url: `https://rinkeby.infura.io/v3/${process.env.RINKEBY_INFURA_KEY}`,
