@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useEventListener } from "eth-hooks/events/useEventListener";
 import { utils } from "ethers";
 import { Button, Card, Col, Collapse, Space } from "antd";
 import { FruitSwap, PlantaWallet } from "../components/";
+
+const POLL_TIME = 15000;
 
 const _onUpdate = update => {
   console.log("📡 Transaction Update:", update);
@@ -20,12 +23,7 @@ const _onUpdate = update => {
 };
 
 import {
-  useBalance,
-  useContractLoader,
   useContractReader,
-  useGasPrice,
-  useOnBlock,
-  useUserProviderAndSigner,
 } from "eth-hooks";
 
 let plantsCount = 0;
@@ -72,7 +70,7 @@ function DisplayApproveBtn({
 
 function GetApproveFruit({ address, readContracts, plantAddress, setDisplayBuyPlantBtn, writeContracts, tx }) {
   // const approveFruits =
-  const fruitAllowance = useContractReader(readContracts, "Fruit", "allowance", [address, plantAddress]);
+  const fruitAllowance = useContractReader(readContracts, "Fruit", "allowance", [address, plantAddress], POLL_TIME);
   return (
     <div>
       {fruitAllowance ? (
@@ -92,13 +90,14 @@ function GetApproveFruit({ address, readContracts, plantAddress, setDisplayBuyPl
   );
 }
 
-function Shop({ address, tx, readContracts, writeContracts, setTransferEvents }) {
+function Shop({ address, tx, readContracts, writeContracts, localProvider }) {
   const [buyPlantBtnStr, setBuyPlantBtnStr] = useState("Buy Seed");
   const [displayBuyPlantBtn, setDisplayBuyPlantBtn] = useState(false);
   const [buyPlantStr, setBuyPlantStr] = useState("");
 
-  const seedPrice = useContractReader(readContracts, "Plant", "currentPrice");
-  const fruitBalance = useContractReader(readContracts, "Fruit", "balanceOf", [address]);
+  const setTransferEvents = useEventListener(readContracts, "Plant", "Transfer", localProvider, 1);
+  const seedPrice = useContractReader(readContracts, "Plant", "currentPrice", POLL_TIME);
+  const fruitBalance = useContractReader(readContracts, "Fruit", "balanceOf", [address], POLL_TIME);
   let displayApproveBtn = false;
 
   return (
@@ -211,7 +210,7 @@ export default function Banks({
         writeContracts={writeContracts}
         tx={tx}
         address={address}
-        setTransferEvents={setTransferEvents}
+        localProvider={localProvider}
       />
     </div>
   );

@@ -7,6 +7,8 @@ import { Address } from "../components";
 
 import fire from "../assets/fire.gif";
 
+const POLL_TIME = 15000;
+
 function AnalyseData({ plantIdMain }) {
   return;
 }
@@ -104,7 +106,7 @@ function GetSeedsList({
   setIsPlantedMain,
   setPlantIdMain,
 }) {
-  const ownedUnplantedList = useContractReader(readContracts, "Plant", "unplantedByAddress", [ownerAddressMain]);
+  const ownedUnplantedList = useContractReader(readContracts, "Plant", "unplantedByAddress", [ownerAddressMain], POLL_TIME);
   const [btnStatus, setBtnStaus] = useState(true);
   const [transactionStr, setTransactionStr] = useState("Nothing Planted!");
   const [chooseStr, setChooseStr] = useState("Choose a seed:");
@@ -219,7 +221,7 @@ export default function LandDetail({
   const [ownerAddressMain, setOwnerAddressMain] = useState(ownerAddress);
   const [isPlantedMain, setIsPlantedMain] = useState(isPlanted);
   const [plantIdMain, setPlantIdMain] = useState(plantId);
-  const landDetails = useContractReader(readContracts, "Land", "landDetailsByDistance", [landTokenId, 0]);
+  const landDetails = useContractReader(readContracts, "Land", "landDetailsByDistance", [landTokenId, 0], POLL_TIME);
   // console.log("landTokenId "+landTokenId);
   // console.log(landDetails);
   console.log("isPlantedMain " + isPlantedMain);

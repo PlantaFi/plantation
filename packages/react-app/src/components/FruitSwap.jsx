@@ -1,7 +1,9 @@
 import { utils } from "ethers";
 import { Button, Divider, Input } from "antd";
 import React, { useState } from "react";
-import { useContractLoader, useContractReader, useUserProviderAndSigner } from "eth-hooks";
+import { useContractReader } from "eth-hooks";
+
+const POLL_TIME = 15000;
 
 const fmtEth = utils.formatEther;
 const parseEth = utils.parseEther;
@@ -23,7 +25,7 @@ function _onUpdate(update) {
 }
 
 function FMaticOut({ fruitIn, readContracts }) {
-  const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(fruitIn)]);
+  const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(fruitIn)], POLL_TIME);
   return <span>{fmaticOut ? fmtEth(fmaticOut) : "..."}</span>;
 }
 
@@ -34,12 +36,12 @@ export default function FruitSwap({ address, tx, readContracts, writeContracts }
   const fruniswapFruitAllow = useContractReader(readContracts, "Fruit", "allowance", [
     address,
     writeContracts.Fruniswap.address,
-  ]);
+  ], POLL_TIME);
   const fruniswapFMaticAllow = useContractReader(readContracts, "FMatic", "allowance", [
     address,
     writeContracts.Fruniswap.address,
-  ]);
-  const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(newFruitAmount)]);
+  ], POLL_TIME);
+  const fmaticOut = useContractReader(readContracts, "Fruniswap", "getAmountOutForFruitIn", [parseEth(newFruitAmount)], POLL_TIME);
 
   return (
     <div>

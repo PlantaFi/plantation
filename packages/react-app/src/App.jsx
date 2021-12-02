@@ -17,13 +17,11 @@ import {
   useContractLoader,
   useContractReader,
   useGasPrice,
-  useOnBlock,
   useUserProviderAndSigner,
 } from "eth-hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
-import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
-// import Hints from "./Hints";
-import { ExampleUI, PairSwap, Hints, Subgraph, Banks, Plant, Map, PlantsList, Plantstagram } from "./views";
+// import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
+import { ExampleUI, PairSwap, Banks, Plant, Map, PlantsList, Plantstagram } from "./views";
 
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
@@ -200,7 +198,7 @@ function App(props) {
   };
 
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
-  const price = useExchangeEthPrice(targetNetwork, mainnetProvider);
+  const price = 1; // useExchangeEthPrice(targetNetwork, mainnetProvider);
 
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
@@ -232,10 +230,10 @@ function App(props) {
   const faucetTx = Transactor(localProvider, gasPrice);
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  const yourLocalBalance = useBalance(localProvider, address);
+  const yourLocalBalance = 0; // useBalance(localProvider, address);
 
   // Just plug in different 🛰 providers to get your balance on different chains:
-  const yourMainnetBalance = useBalance(mainnetProvider, address);
+  const yourMainnetBalance = 0; // useBalance(mainnetProvider, address);
 
   // const contractConfig = useContractConfig();
 
@@ -255,23 +253,8 @@ function App(props) {
   // If you want to bring in the mainnet DAI contract it would look like:
   const mainnetContracts = useContractLoader(mainnetProvider, contractConfig);
 
-  // If you want to call a function on a new block
-  useOnBlock(mainnetProvider, () => {
-    console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
-  });
-
-  // Then read your DAI balance like:
-  const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
-    "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-  ]);
-
-  // keep track of a variable from the contract in the local React state:
-  const purpose = useContractReader(readContracts, "YourContract", "purpose");
-
   // 📟 Listen for broadcast events
-  const setPurposeEvents = useEventListener(readContracts, "Plant", "Transfer", localProvider, 1);
-
-    const setTransferEvents = useEventListener(readContracts, "Plant", "Transfer", localProvider, 1);
+  //const setTransferEvents = useEventListener(readContracts, "Plant", "Transfer", localProvider, 1);
 
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
@@ -302,7 +285,6 @@ function App(props) {
       console.log("💵 yourMainnetBalance", yourMainnetBalance ? ethers.utils.formatEther(yourMainnetBalance) : "...");
       console.log("📝 readContracts", readContracts);
       console.log("🌍 DAI contract on mainnet:", mainnetContracts);
-      console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
       console.log("🔐 writeContracts", writeContracts);
     }
   }, [
@@ -537,20 +519,11 @@ function App(props) {
               tx={tx}
               writeContracts={writeContracts}
               readContracts={readContracts}
-              purpose={purpose}
-              setTransferEvents={setTransferEvents}
+              // setTransferEvents={setTransferEvents}
             />
           </Route>
           <Route path="/map">
             <Map address={address} tx={tx} writeContracts={writeContracts} readContracts={readContracts} />
-          </Route>
-          <Route path="/hints">
-            <Hints
-              address={address}
-              yourLocalBalance={yourLocalBalance}
-              mainnetProvider={mainnetProvider}
-              price={price}
-            />
           </Route>
           <Route path="/exampleui">
             <ExampleUI
@@ -563,8 +536,6 @@ function App(props) {
               tx={tx}
               writeContracts={writeContracts}
               readContracts={readContracts}
-              purpose={purpose}
-              setPurposeEvents={setPurposeEvents}
             />
           </Route>
           <Route path="/pairswap">
@@ -676,36 +647,6 @@ function App(props) {
               blockExplorer={blockExplorer}
               contractConfig={contractConfig}
             />
-          </Route>
-          <Route path="/mainnetdai">
-            <Contract
-              name="Plant"
-              signer={userSigner}
-              provider={localProvider}
-              address={address}
-              blockExplorer={blockExplorer}
-              contractConfig={contractConfig}
-            />
-            {/*
-                        <Contract
-                          name="plant"
-                          customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.DAI}
-                          signer={userSigner}
-                          provider={mainnetProvider}
-                          address={address}
-                          blockExplorer="https://etherscan.io/"
-                          contractConfig={contractConfig}
-                          chainId={1}
-                        />
-                      <Contract
-                        name="UNI"
-                        customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
-                        signer={userSigner}
-                        provider={mainnetProvider}
-                        address={address}
-                        blockExplorer="https://etherscan.io/"
-                      />
-                      */}
           </Route>
         </Switch>
       </BrowserRouter>

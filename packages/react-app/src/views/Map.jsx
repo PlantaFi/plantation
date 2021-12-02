@@ -6,18 +6,15 @@ import { LandDetails, Plant, PlantsList } from "./";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 
 import {
-  useBalance,
-  useContractLoader,
   useContractReader,
-  useGasPrice,
-  useOnBlock,
-  useUserProviderAndSigner,
 } from "eth-hooks";
 
 import backSand from "../assets/questwater2.png";
 import backGrass from "../assets/questgrass4.png";
 import backTree from "../assets/questtreeA3.png";
 import windrose from "../assets/windrose.png";
+
+const POLL_TIME = 10000;
 
 function maxArray({ distance }) {
   return Math.pow(distance + distance + 1, 2);
@@ -114,7 +111,7 @@ export default function Map({ address, tx, readContracts, writeContracts }) {
   let landinfodistance = useContractReader(readContracts, "Land", "landOverviewByDistance", [
     countLandTokenId(currentx, currenty),
     distance,
-  ]);
+  ], POLL_TIME);
 
   //console.log(landinfodistance);
 

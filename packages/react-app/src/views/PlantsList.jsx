@@ -4,6 +4,8 @@ import { useContractReader } from "eth-hooks";
 import { Plant } from "./";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 
+const POLL_TIME = 10000;
+
 function DisplayPlantsList({ plantId, setPlantId }) {
   let data = [];
   data.push(plantId._hex);
@@ -26,7 +28,7 @@ function DisplayPlantsList({ plantId, setPlantId }) {
 }
 
 export default function PlantsList({ address, readContracts, writeContracts, tx }) {
-  const plantList = useContractReader(readContracts, "Plant", "plantedByAddress", [address]);
+  const plantList = useContractReader(readContracts, "Plant", "plantedByAddress", [address], POLL_TIME);
   const [plantId, setPlantId] = useState();
   return (
     <div>

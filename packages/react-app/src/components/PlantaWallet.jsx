@@ -2,10 +2,10 @@ import { utils } from "ethers";
 import { Button, Divider, Input } from "antd";
 import React, { useState } from "react";
 import {
-  useContractLoader,
   useContractReader,
-  useUserProviderAndSigner,
 } from "eth-hooks";
+
+const POLL_TIME = 15000;
 
 const fmtEth = utils.formatEther;
 const parseEth = utils.parseEther;
@@ -39,10 +39,10 @@ export default function PlantaWallet({
   readContracts,
   writeContracts,
 }) {
-  const fruitBalance = useContractReader(readContracts, "Fruit", "balanceOf", [address]);
-  const fmaticBalance = useContractReader(readContracts, "FMatic", "balanceOf", [address]);
-  const plantBalance = useContractReader(readContracts, "Plant", "balanceOf", [address]);
-  const landBalance = useContractReader(readContracts, "Land", "balanceOf", [address]);
+  const fruitBalance = useContractReader(readContracts, "Fruit", "balanceOf", [address], POLL_TIME);
+  const fmaticBalance = useContractReader(readContracts, "FMatic", "balanceOf", [address], POLL_TIME);
+  const plantBalance = useContractReader(readContracts, "Plant", "balanceOf", [address], POLL_TIME);
+  const landBalance = useContractReader(readContracts, "Land", "balanceOf", [address], POLL_TIME);
 
   return (
     <div className="nes-container is-rounded is-dark with-title">

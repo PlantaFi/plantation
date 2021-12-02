@@ -28,12 +28,7 @@ import iconScythe from "../foundicons/scythe.png";
 // stuff we might need from App.jsx
 // import { Transactor } from "./helpers";
 import {
-  useBalance,
-  useContractLoader,
   useContractReader,
-  useGasPrice,
-  useOnBlock,
-  useUserProviderAndSigner,
 } from "eth-hooks";
 /*
 import {
@@ -42,6 +37,7 @@ import {
 import { useContractConfig } from "./hooks"
 */
 
+const POLL_TIME = 5000;
 const { Panel } = Collapse;
 
 const fmtEth = utils.formatEther;
@@ -200,7 +196,7 @@ function DisplayPlantImage({ plantDNA, isAlive, lastNormalBranch, lastWeakBranch
 }
 
 function GetApproveMatics({ address, plantId, readContracts, plantAddress, writeContracts, tx, isAlive }) {
-  const maticAllowance = useContractReader(readContracts, "FMatic", "allowance", [address, plantAddress]);
+  const maticAllowance = useContractReader(readContracts, "FMatic", "allowance", [address, plantAddress], POLL_TIME);
   return (
     <div style={{ display: "inline-block" }}>
       {maticAllowance > 0 ? (
@@ -312,6 +308,7 @@ function DisplayBurn({ isAlive, tx, writeContracts, landTokenId }) {
             style={{ margin: 10 }}
             className="nes-btn is-error"
             onClick={async () => {
+              console.log(`burn ${landTokenId}`);
               const result = tx(writeContracts.Land.handleBurn(landTokenId), update => {
                 console.log("📡 Transaction Update:", update);
                 if (update && (update.status === "confirmed" || update.status === 1)) {
@@ -486,7 +483,7 @@ function DisplayFruits({ flowers, lastFertilizedAt }) {
 }
 
 export default function Plant({ address, plantId, readContracts, writeContracts, tx }) {
-  const plantState = useContractReader(readContracts, "Plant", "state", [plantId]);
+  const plantState = useContractReader(readContracts, "Plant", "state", [plantId], 2000);
 
   const [secs, setSecs] = useState(0);
   useEffect(() => {
